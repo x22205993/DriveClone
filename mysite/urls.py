@@ -19,5 +19,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+     path("drive/", include("drive.urls")),
     path('api-auth/', include('rest_framework.urls'))
 ]
