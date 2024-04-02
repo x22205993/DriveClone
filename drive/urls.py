@@ -1,6 +1,8 @@
-from .views import(StorageItemListApiView)
+from .views import(StorageItemListApiView, StorageItemDetail)
 from django.urls import path, include
 
 urlpatterns = [
-    path('api', StorageItemListApiView.as_view()),
+    path('', StorageItemListApiView.as_view()),
+    path('<int:pk>/', StorageItemDetail.as_view()),
+    path('upload/', StorageItemDetail.as_view())
 ]
