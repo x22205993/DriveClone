@@ -1,0 +1,13 @@
+<div class="modal fade" role="dialog" tabindex="-1" id="{{ modal_id }}">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h4 class="modal-title">{{ modal_title }}</h4><button class="btn-close" type="button" aria-label="Close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body d-flex flex-column justify-content-xl-center border-0"><input type="text" style="padding: 10px;border-radius: 7px;border-width: 1px;border-style: solid;" id="{{ input_id }}" required="" autofocus ></div>
+            <div class="modal-footer border-0"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="button" onclick="{{ on_ok }}">Update</button></div>
+        </div>
+    </div>
+</div>
+
+{% comment %} TODO: More resuablity can be added here and it can be made more generic {% endcomment %}

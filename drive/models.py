@@ -3,15 +3,15 @@ from django.db import models
 
 # Create your models here.
 
-
-class PathMap(models.Model):
-    path =  models.CharField(max_length=200)
-
-class StorageItem(models.Model):
-    item_name = models.CharField(max_length=100)
+class Folder(models.Model):
+    name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
-    is_dir = models.BooleanField(default=False)
-    filepath = models.CharField(max_length=200, null=True, blank=True)
-    path_id = models.ForeignKey(PathMap, on_delete=models.CASCADE)
-    object_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+    is_empty = models.BooleanField(default=True)
+    #FIXME: Is it a good idea to keep this empty ?
 
+class File(models.Model):
+    name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    object_key = models.CharField(max_length=300)
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True) #TODO: We need to deifne root folder so as to not save blank

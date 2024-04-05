@@ -1,0 +1,57 @@
+{% load static %}
+<html>
+    <header>
+        <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    </header>
+    <div class="container mt-5" style=""><button class="btn btn-primary" type="button" data-bs-target="#modal-1" data-bs-toggle="modal">New Folder</button></div>
+    <div class="modal fade" role="dialog" tabindex="-1" id="modal-1">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h4 class="modal-title">New Folder</h4><button class="btn-close" type="button" aria-label="Close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body d-flex flex-column justify-content-xl-center border-0"><input type="text" style="padding: 10px;border-radius: 7px;border-width: 1px;border-style: solid;" id="new-folder-name" required=""></div>
+                <div class="modal-footer border-0"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="create-folder" type="button">Create</button></div>
+            </div>
+        </div>
+    </div> 
+    {% comment %} TODO: Add Reusability {% endcomment %}
+    {% comment %} TODO: we should not access input box directly from js of modal not important but good for making things generic {% endcomment %}
+    {% include 'partials/input_modal.html' with modal_id="modal-2" modal_title="Rename File" input_id="rename-file-input" on_ok="rename_file()" %}
+    {% include 'partials/confirm_modal.html' with modal_id="modal-3" modal_title="Delete File" modal_content="Are you sure you want to delete file <span id='delete-file-name-display'> </span> ?" on_ok="delete_file()" %}
+    
+    {% include 'partials/input_modal.html' with modal_id="modal-4" modal_title="Rename Folder" input_id="rename-folder-input" on_ok="rename_folder()" %}
+    {% include 'partials/confirm_modal.html' with modal_id="modal-5" modal_title="Delete Folder" modal_content="<span id='folder-has-content-warning'> </span> Are you sure you want to delete folder <span id='delete-folder-name-display'> </span>" on_ok="delete_folder()" %}
+{% comment %} TODO:Make sure to only accept files for the time being {% endcomment %}
+<input type="file" class="dropdown-item" id="file-upload">     
+<h1>Files</h1>
+{% if parent_folder_id %}
+<a href="/drive/folders/{{ parent_folder_id }}"> Back </a>
+{% else %}
+<a href="/drive/"> Back </a>
+{% endif %}
+{% comment %} TODO: This is not a good way to do things fix this {% endcomment %}
+<span class="d-none" id="current_folder_id"> {{ folder_id }}</span>
+<ul>
+{% comment %} TODO: Add Reusability Common Code {% endcomment %}
+{% comment %} TODO: Find better way to set and check if folder is empty {% endcomment %}
+{% for item in folders %}
+    <li data-folder-id="{{ item.id}}" data-folder-name="{{ item.name}}" data-folder-is-emtpy={% if item.is_empty %}1{% else %}0{% endif %}>
+    <a class="pe-auto" href="/drive/folders/{{ item.id }}">{{ item.name}} </a> 
+    <button class="btn btn-primary rename-folder-modal-trigger" type="button" data-bs-target="#modal-4" data-bs-toggle="modal">Rename</button>
+    <button class="btn btn-primary delete-folder-modal-trigger" type="button" data-bs-target="#modal-5" data-bs-toggle="modal">Delete</button>
+    </li>
+{% endfor %}
+ {% comment %} TODO: Storing file id in each element vs in the parent element ? Fetch file_id from list item only {% endcomment %}
+{% for item in files %} 
+    <li data-file-id="{{ item.id}}" data-file-name="{{ item.name}}">
+        <a role="button" class="file-item pe-auto" data-file-id="{{ item.id }}"> {{ item.name}} </a> 
+        <button class="btn btn-primary rename-file-modal-trigger" type="button" data-bs-target="#modal-2" data-bs-toggle="modal">Rename</button>
+        <button class="btn btn-primary delete-file-modal-trigger" type="button" data-bs-target="#modal-3" data-bs-toggle="modal">Delete</button>
+     </li>
+{% endfor %}
+</ul>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/folder_list.js' %}"></script>
+
+</html>
