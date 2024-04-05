@@ -113,7 +113,7 @@ class FileListView(View):
                 object_key=object_key,
                 folder=folder 
             )
-            return JsonResponse({"message": "File Created Successfully"}, status=200) 
+            return JsonResponse({"message": "File Created Successfully", "id": file.id}, status=200) 
         else:
             return JsonResponse({"message": f"No Object with the given key exists - {object_key} "}, status=404)
     

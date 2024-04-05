@@ -32,7 +32,7 @@
 {% endif %}
 {% comment %} TODO: This is not a good way to do things fix this {% endcomment %}
 <span class="d-none" id="current_folder_id"> {{ folder_id }}</span>
-<ul>
+<ul id='file-items'>
 {% comment %} TODO: Add Reusability Common Code {% endcomment %}
 {% comment %} TODO: Find better way to set and check if folder is empty {% endcomment %}
 {% for item in folders %}
@@ -44,14 +44,18 @@
 {% endfor %}
  {% comment %} TODO: Storing file id in each element vs in the parent element ? Fetch file_id from list item only {% endcomment %}
 {% for item in files %} 
-    <li data-file-id="{{ item.id}}" data-file-name="{{ item.name}}">
+    <li class="" data-file-id="{{ item.id}}" data-file-name="{{ item.name}}">
         <a role="button" class="file-item pe-auto" data-file-id="{{ item.id }}"> {{ item.name}} </a> 
         <button class="btn btn-primary rename-file-modal-trigger" type="button" data-bs-target="#modal-2" data-bs-toggle="modal">Rename</button>
         <button class="btn btn-primary delete-file-modal-trigger" type="button" data-bs-target="#modal-3" data-bs-toggle="modal">Delete</button>
      </li>
 {% endfor %}
 </ul>
+<div id="upload-queue">
+File Upload Queue
+</div>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/core.min.js' %}"></script>
 <script src="{% static 'js/folder_list.js' %}"></script>
 
 </html>
