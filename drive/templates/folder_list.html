@@ -3,6 +3,10 @@
     <header>
         <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     </header>
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Logout</button>
+    </form>
     <div class="container mt-5" style=""><button class="btn btn-primary" type="button" data-bs-target="#modal-1" data-bs-toggle="modal">New Folder</button></div>
     <div class="modal fade" role="dialog" tabindex="-1" id="modal-1">
         <div class="modal-dialog" role="document">
@@ -19,7 +23,6 @@
     {% comment %} TODO: we should not access input box directly from js of modal not important but good for making things generic {% endcomment %}
     {% include 'partials/input_modal.html' with modal_id="modal-2" modal_title="Rename File" input_id="rename-file-input" on_ok="rename_file()" %}
     {% include 'partials/confirm_modal.html' with modal_id="modal-3" modal_title="Delete File" modal_content="Are you sure you want to delete file <span id='delete-file-name-display'> </span> ?" on_ok="delete_file()" %}
-    
     {% include 'partials/input_modal.html' with modal_id="modal-4" modal_title="Rename Folder" input_id="rename-folder-input" on_ok="rename_folder()" %}
     {% include 'partials/confirm_modal.html' with modal_id="modal-5" modal_title="Delete Folder" modal_content="<span id='folder-has-content-warning'> </span> Are you sure you want to delete folder <span id='delete-folder-name-display'> </span>" on_ok="delete_folder()" %}
 {% comment %} TODO:Make sure to only accept files for the time being {% endcomment %}
@@ -55,7 +58,6 @@
 File Upload Queue
 </div>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'js/core.min.js' %}"></script>
 <script src="{% static 'js/folder_list.js' %}"></script>
 
 </html>

@@ -123,3 +123,5 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ['http://localhost:9900']
+LOGOUT_REDIRECT_URL='/drive/login/'
+LOGIN_URL = '/drive/login/'

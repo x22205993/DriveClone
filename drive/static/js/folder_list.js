@@ -302,5 +302,3 @@ function delete_folder() {
    })
  })
 }
-
-

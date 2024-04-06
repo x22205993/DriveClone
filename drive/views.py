@@ -1,15 +1,56 @@
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.views.decorators.http import require_GET
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import Folder, File
 from .integrations import generate_presigned_url, delete_object, delete_multiple_objects, object_exists
+from .forms import LoginForm, SignupForm
 import json
 import uuid
 
-#FIXME: Add Validations
+def login_view(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            print(username, password)
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('profile')
+            else:
+                form.add_error(None, 'Invalid username or password')
+                messages.error(request, 'Invalid username or password.')
+                return redirect('login')
+    else:
+        form = LoginForm()
+    return render(request, 'login.html', {'form': form})
 
-class FolderListView(View):
+def signup_view(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login') 
+        else:
+            request.session['signup_form_data'] = request.POST.dict()
+            return redirect('signup')
+    else:
+        form_data = request.session.pop('signup_form_data', None)
+        print(form_data)
+        form = SignupForm(data=form_data)
+    
+
+    return render(request, 'signup.html', {'form': form,})
+
+#FIXME: Add Validations
+class FolderListView(LoginRequiredMixin, View):
     template_name = "folder_list.html"
 
     def get(self, request, *args, **kwargs):
@@ -70,7 +111,7 @@ class FolderListView(View):
         # TODO: This similar code is used while deleting a file so move comon code to one function and use it at both places
 
 
-class FileListView(View):
+class FileListView(LoginRequiredMixin, View):
 
     def put(self, request, *args, **kwargs):
         file_id = self.kwargs.get('file_id')
@@ -124,6 +165,7 @@ class FileListView(View):
 # TODO: Folder id should be in backend only ?
 # TODO: This is not the correct way to do things first generate object key and if only it gets create in s3 create it at your end 
 @require_GET
+@login_required
 def get_presigned_url(request, *args, **kwargs):
     object_key = uuid.uuid4()
     presigned_url = generate_presigned_url(object_key=object_key, for_upload=True)
@@ -133,6 +175,7 @@ def get_presigned_url(request, *args, **kwargs):
 # TODO: Duplicate code fix
 # TODO: Check if file empty and file_id null
 @require_GET
+@login_required
 def get_presigned_url_for_download(request, file_id, *args, **kwargs):
     file = File.objects.get(id=file_id)
     presigned_url = generate_presigned_url(object_key=file.object_key, file_name=file.name, for_upload=False)

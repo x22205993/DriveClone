@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+</head>
+
+<body>
+    <section class="position-relative py-4 py-xl-5">
+        <div class="container position-relative">
+            <div class="row d-flex justify-content-center">
+                <div class="col-md-8 col-lg-6 col-xl-5 col-xxl-4">
+                    <div class="card mb-5">
+                        <div class="card-body p-sm-5">
+                            <h2 class="text-center mb-4">Register</h2>
+                            <form method="post">
+                                {% csrf_token %}
+                                {% for error_list in form_errors.values %}
+                                {% for error in error_list %}
+                                <div class="alert alert-danger fade show" role="alert">
+                                    {{ error }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>  
+                                </div>
+                                {% endfor %}
+                              {% endfor %}
+                                {% for error in form.password2.errors %}
+                                <div class="alert alert-danger fade show" role="alert">
+                                    {{ error }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>  
+                                </div>
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <div class="alert alert-danger fade show" role="alert">
+                                        {{ error }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>  
+                                    </div>
+                                {% endfor %}
+                                <div class="mb-3">
+                                    <input class="form-control" type="text" name="username" id="id_username" placeholder="Username" style="font-size: 20px;" value="{{ form.username.value|default:"" }}">
+                                </div>
+                                <div class="mb-3">
+                                    <input class="form-control" type="text" name="email" id="id_email" placeholder="Email" style="font-size: 20px;" value="{{ form.email.value|default:"" }}">
+                                </div>
+                                <div class="mb-3">
+                                    <input class="form-control" type="password" name="password1" id="id_password1" placeholder="Password" style="font-size: 20px;">
+                                </div>
+                                <div class="mb-3">
+                                    <input class="form-control" type="password" name="password2" id="id_password2" placeholder="Password" style="font-size: 20px;">       
+                                </div>
+
+                                <div>
+                                    <button class="btn btn-primary d-block w-100" type="submit">Register</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+
+</html>
