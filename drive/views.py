@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Folder, File
-from .integrations import generate_presigned_url, delete_object, delete_multiple_objects, object_exists
+from .integrations import generate_presigned_url, delete_object, delete_multiple_objects, object_exists, create_bucket
 from .forms import LoginForm, SignupForm
 import json
 import uuid
@@ -36,7 +36,8 @@ def signup_view(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            resp = create_bucket(str(user.id)) #TODO: check if bucket is actually created
             return redirect('login') 
         else:
             request.session['signup_form_data'] = request.POST.dict()
@@ -50,6 +51,7 @@ def signup_view(request):
     return render(request, 'signup.html', {'form': form,})
 
 #FIXME: Add Validations
+# TODO: Do I need to add bucket field in file and folder model also
 class FolderListView(LoginRequiredMixin, View):
     template_name = "folder_list.html"
 
@@ -59,10 +61,9 @@ class FolderListView(LoginRequiredMixin, View):
         if folder_id:
             folder = Folder.objects.get(id=folder_id) #TODO: maybe usie something to just get the parent_id value
             context['parent_folder_id'] = folder.parent_folder and folder.parent_folder.id
-            print(context['parent_folder_id'])
         context['folder_id'] = folder_id
-        context['folders'] = Folder.objects.filter(parent_folder=folder_id)
-        context['files'] =  File.objects.filter(folder=folder_id)
+        context['folders'] = Folder.objects.filter(parent_folder=folder_id, user=request.user)
+        context['files'] =  File.objects.filter(folder=folder_id, user=request.user)
         request.session['current_folder_id'] = folder_id 
         return render(request, 'folder_list.html', context)
     
@@ -91,12 +92,12 @@ class FolderListView(LoginRequiredMixin, View):
         folder_id = self.kwargs.get('folder_id')
         print(folder_id)
         folder = Folder.objects.get(id=folder_id)
-        self._delete_folder(folder)
+        self._delete_folder(folder, str(request.user.id)) #TODO: make this thing common
         # TODO: Actually check the response before deleting 
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
 
-    def _delete_folder(self, folder):
+    def _delete_folder(self, folder, bucket_name):
         folders_inside_folder = Folder.objects.filter(parent_folder=folder)
         for inner_folder in list(folders_inside_folder):
             self._delete_folder(inner_folder)
@@ -104,7 +105,7 @@ class FolderListView(LoginRequiredMixin, View):
         files_inside_folder = File.objects.filter(folder=folder)
         files_object_keys = list(map( lambda x: str(x.object_key),files_inside_folder))
         print(files_object_keys)
-        s3_resp = delete_multiple_objects(files_object_keys)
+        s3_resp = delete_multiple_objects(bucket_name, files_object_keys)
         files_inside_folder.delete()
         folder.delete()
         # TODO: Check if they are getting deleted otherwise throw error
@@ -136,7 +137,7 @@ class FileListView(LoginRequiredMixin, View):
             current_folder = None
         print(type(file_id))
         file = File.objects.get(id=file_id)
-        s3_resp = delete_object(file.object_key)
+        s3_resp = delete_object(str(request.user.id), file.object_key)
         file.delete() 
         # TODO: Actually check the response before deleting 
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
@@ -148,7 +149,7 @@ class FileListView(LoginRequiredMixin, View):
         file_name = body_data.get('file_name')
         folder_id = body_data.get('folder_id')
         folder = folder_id  and Folder.objects.get(folder_id)
-        if object_exists(object_key):
+        if object_exists(str(request.user.id), object_key):
             file = File.objects.create(
                 name=file_name,
                 object_key=object_key,
@@ -168,7 +169,7 @@ class FileListView(LoginRequiredMixin, View):
 @login_required
 def get_presigned_url(request, *args, **kwargs):
     object_key = uuid.uuid4()
-    presigned_url = generate_presigned_url(object_key=object_key, for_upload=True)
+    presigned_url = generate_presigned_url(str(request.user.id), object_key=object_key, for_upload=True)
     return JsonResponse({"presigned_url": presigned_url, "object_key": object_key})
 
 
@@ -178,6 +179,6 @@ def get_presigned_url(request, *args, **kwargs):
 @login_required
 def get_presigned_url_for_download(request, file_id, *args, **kwargs):
     file = File.objects.get(id=file_id)
-    presigned_url = generate_presigned_url(object_key=file.object_key, file_name=file.name, for_upload=False)
+    presigned_url = generate_presigned_url(str(request.user.id), object_key=file.object_key, file_name=file.name, for_upload=False)
     return JsonResponse({"presigned_url": presigned_url})
 
