@@ -1,9 +1,6 @@
 ''' AWS S3 Bucket Integration'''
-
 import urllib.parse
 import boto3
-
-session = boto3.Session()
 
 EXPIRATION_TIME = 600
 BUCKET_PREFIX = "x22205993-"

@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-tr%0%!w^$lqcs9ubx6nmongc3sfxv6%dp9hi1gi2pdw)+&tu$q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['http://x22205993-driveclone-env.eba-v3apdfwa.eu-west-1.elasticbeanstalk.com', 'localhost']
 
 
 # Application definition
@@ -117,13 +117,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = 'static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-CSRF_TRUSTED_ORIGINS = ['http://localhost:9900']
+CSRF_TRUSTED_ORIGINS = ['http://x22205993-driveclone-env.eba-v3apdfwa.eu-west-1.elasticbeanstalk.com', 'http://localhost:9900']
 LOGOUT_REDIRECT_URL='/drive/login/'
 LOGIN_URL = '/drive/login/'
-
-ALLOWED_HOSTS=['x22205993-driveclone-env.eba-v3apdfwa.eu-west-1.elasticbeanstalk.com']
