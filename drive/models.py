@@ -1,4 +1,3 @@
-import uuid
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -16,5 +15,6 @@ class File(models.Model):
     name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     object_key = models.CharField(max_length=300)
-    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True) #TODO: We need to deifne root folder so as to not save blank
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True) 
+    #TODO: We need to deifne root folder so as to not save blank
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)

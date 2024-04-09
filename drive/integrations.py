@@ -1,7 +1,7 @@
-from datetime import date
+''' AWS S3 Bucket Integration'''
+
 import boto3
 import urllib.parse
-
 
 session = boto3.Session()
 
@@ -13,21 +13,20 @@ s3_client = boto3.client('s3')
 def generate_presigned_url(bucket_name, object_key, file_name=None, for_upload=False):
     #FIXME: Refactor also add validation
     bucket_name = add_prefix_to_bucket(bucket_name)
-    client_method = "get_object"
-    if for_upload:
-        client_method = "put_object"
-
     params = {
         #FIXME: Is this the best way to do this ?
         "Key": str(object_key),
         "Bucket": bucket_name
     }
-    # FIXME: Find a better way to do this 
+
     if for_upload:
+        client_method = "put_object"
         params.update({ 'ContentType': 'application/octet-stream'})
     else:
+        if not file_name:
+            raise Exception("File Name not present")
+        client_method = "get_object"
         params.update({'ResponseContentDisposition': f'attachment; filename="{urllib.parse.quote(file_name)}"'})
-
     print(params)
     resp = s3_client.generate_presigned_url(
         client_method,
@@ -38,10 +37,10 @@ def generate_presigned_url(bucket_name, object_key, file_name=None, for_upload=F
     return resp
 
 # FIXME: Handle Validations here 
-def delete_object(bucket_name, object_key=None):
+def delete_object(bucket_name, object_key):
+    if not bucket_name or not object_key:
+        raise Exception("Bucket Name and Object key is required")
     bucket_name = add_prefix_to_bucket(bucket_name)
-    if not object_key:
-        return 
     # FIXME: Maybe throw error here ?
     response = s3_client.delete_object(
         Bucket=bucket_name,
@@ -49,16 +48,18 @@ def delete_object(bucket_name, object_key=None):
     return response
 
 # FIXME: Handle Validations here 
-def delete_multiple_objects(bucket_name, object_keys=None):
+def delete_multiple_objects(bucket_name, object_keys):
+    if not bucket_name or not object_keys:
+        raise Exception("Bucket Name and Object key is required ")
     bucket_name = add_prefix_to_bucket(bucket_name)
-    if not object_keys:
-        return
     response = s3_client.delete_objects(
                 Bucket=bucket_name,
                 Delete={"Objects": [{"Key": str(key)} for key in object_keys]})
     return response
 
 def object_exists(bucket_name, object_key):
+    if not bucket_name:
+        raise Exception("Bucket Name is mandatory")
     bucket_name = add_prefix_to_bucket(bucket_name)
     try:
         response = s3_client.get_object_attributes(
@@ -72,7 +73,7 @@ def object_exists(bucket_name, object_key):
 
 def create_bucket(bucket_name):
     if not bucket_name:
-        return #TODO: Throw error here
+        raise Exception("Bucket Name is mandatory")
     bucket_name = BUCKET_PREFIX + bucket_name
     response = s3_client.create_bucket(Bucket=bucket_name)
     s3_client.put_bucket_cors(

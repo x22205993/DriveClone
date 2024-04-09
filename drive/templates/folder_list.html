@@ -7,15 +7,15 @@
         {% csrf_token %}
         <button type="submit" class="btn btn-primary">Logout</button>
     </form>
-    <div class="container mt-5" style=""><button class="btn btn-primary" type="button" data-bs-target="#modal-1" data-bs-toggle="modal">New Folder</button></div>
+    <div class="container mt-5" style=""><button  data-cy="new-folder-btn" class="btn btn-primary" type="button" data-bs-target="#modal-1" data-bs-toggle="modal">New Folder</button></div>
     <div class="modal fade" role="dialog" tabindex="-1" id="modal-1">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header border-0">
                     <h4 class="modal-title">New Folder</h4><button class="btn-close" type="button" aria-label="Close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body d-flex flex-column justify-content-xl-center border-0"><input type="text" style="padding: 10px;border-radius: 7px;border-width: 1px;border-style: solid;" id="new-folder-name" required=""></div>
-                <div class="modal-footer border-0"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="create-folder" type="button">Create</button></div>
+                <div class="modal-body d-flex flex-column justify-content-xl-center border-0"><input data-cy="new-folder-input" type="text" style="padding: 10px;border-radius: 7px;border-width: 1px;border-style: solid;" id="new-folder-name" required=""></div>
+                <div class="modal-footer border-0"><button data-cy="new-folder-cancel-btn" class="btn btn-light" type="button" data-bs-dismiss="modal">Cancel</button><button data-cy="new-folder-create-btn" class="btn btn-primary" id="create-folder" type="button">Create</button></div>
             </div>
         </div>
     </div> 
@@ -40,9 +40,9 @@
 {% comment %} TODO: Find better way to set and check if folder is empty {% endcomment %}
 {% for item in folders %}
     <li data-folder-id="{{ item.id}}" data-folder-name="{{ item.name}}" data-folder-is-emtpy={% if item.is_empty %}1{% else %}0{% endif %}>
-    <a class="pe-auto" href="/drive/folders/{{ item.id }}">{{ item.name}} </a> 
-    <button class="btn btn-primary rename-folder-modal-trigger" type="button" data-bs-target="#modal-4" data-bs-toggle="modal">Rename</button>
-    <button class="btn btn-primary delete-folder-modal-trigger" type="button" data-bs-target="#modal-5" data-bs-toggle="modal">Delete</button>
+    <a data-cy="folder-click" class="pe-auto" href="/drive/folders/{{ item.id }}">{{ item.name}} </a> 
+    <button data-cy="folder-rename" class="btn btn-primary rename-folder-modal-trigger" type="button" data-bs-target="#modal-4" data-bs-toggle="modal">Rename</button>
+    <button data-cy="folder-delete" class="btn btn-primary delete-folder-modal-trigger" type="button" data-bs-target="#modal-5" data-bs-toggle="modal">Delete</button>
     </li>
 {% endfor %}
  {% comment %} TODO: Storing file id in each element vs in the parent element ? Fetch file_id from list item only {% endcomment %}

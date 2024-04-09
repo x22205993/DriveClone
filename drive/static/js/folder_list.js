@@ -1,12 +1,8 @@
-// const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-// TODO: Make sure to remove all the console.logs
-//TODO: Make sure this one is correct
 function getCSRFToken() {
-  const csrfCookie = document.cookie.match(/csrftoken=([^ ;]+)/);
-  return csrfCookie ? csrfCookie[1] : '';
+  return document.cookie.split(';').filter(elem => elem.startsWith('csrftoken='))[0].split('=')[1]
 } 
 
-const csrf_token = getCSRFToken('csrftoken'); //TODO: This is not the right way to do CSRF firgure it out 
+const csrf_token = getCSRFToken();
 document.getElementById('create-folder').addEventListener('click' ,(e) => {
     const new_folder_name = document.getElementById('new-folder-name').value;
     console.log(new_folder_name) //TODO: Remove all console log stmts
@@ -24,15 +20,13 @@ document.getElementById('create-folder').addEventListener('click' ,(e) => {
     //TODO: Handle Error
 })
 
-file_upload_input = document.getElementById('file-upload')
+let file_upload_input = document.getElementById('file-upload')
 
-// TODO: It's a bad idea to declare global variable figure out another way to create static variable
-var file = ""; //TODO: how to not use var here ? if we use let it will give issue in getting upload url as in reader.onload file will be null 
-var folder = "";
+
 file_upload_input.addEventListener('change' ,(e) => {
-  folder = document.getElementById('current_folder_id').innerText
-  file = file_upload_input.files[0]
-  file_uploader = new FileUploader(file, folder)
+  const folder = document.getElementById('current_folder_id').innerText
+  const file = file_upload_input.files[0]
+  const file_uploader = new FileUploader(file, folder)
   file_uploader.uploadFile()
   file_upload_input.value = ""
 })
@@ -91,10 +85,9 @@ class FileUploader {
 
 }
 
-upload_queue_div = document.getElementById('upload-queue')
+const upload_queue_div = document.getElementById('upload-queue')
 function addToFileQueueDisplay(file_upload_id, file_name) {
-    file_name = file_name
-    file_info_div = document.createElement('div')
+    const file_info_div = document.createElement('div')
     file_info_div.id = file_upload_id
     file_info_div.innerText = `${file_name}`
     upload_queue_div.appendChild(file_info_div)
@@ -103,12 +96,12 @@ function addToFileQueueDisplay(file_upload_id, file_name) {
 
 function removeFromFileQueueDisplay(file_upload_id) {
   file_info_div = document.getElementById(file_upload_id) //TODO: Check for file 
-file_info_div.remove() // TODO: Is removing element a good way of doing this
+  file_info_div.remove() // TODO: Is removing element a good way of doing this
 }
 
 function addToFileListView(file_id, file) {
-  file_items_list = document.getElementById('file-items')
-  file_item_node = document.createElement('li')
+  let file_items_list = document.getElementById('file-items')
+  let file_item_node = document.createElement('li')
   file_item_node.dataset.fileId = file_id
   file_item_node.dataset.fileName = file.name
   //TODO: Move this somehere else 
@@ -116,9 +109,9 @@ function addToFileListView(file_id, file) {
   <a role="button" class="file-item pe-auto" data-file-id="${file_id}"> ${file.name} </a> 
   <button class="btn btn-primary rename-file-modal-trigger" type="button" data-bs-target="#modal-2" data-bs-toggle="modal">Rename</button>
   <button class="btn btn-primary delete-file-modal-trigger" type="button" data-bs-target="#modal-3" data-bs-toggle="modal">Delete</button>`
-  file_item_rename_btn = file_item_node.querySelector('.rename-file-modal-trigger')
-  file_item_delete_btn = file_item_node.querySelector('.delete-file-modal-trigger')
-  file_item_link = file_item_node.querySelector('.file-item')
+  let file_item_rename_btn = file_item_node.querySelector('.rename-file-modal-trigger')
+  let file_item_delete_btn = file_item_node.querySelector('.delete-file-modal-trigger')
+  let file_item_link = file_item_node.querySelector('.file-item')
   addRenameEventToItem(file_item_rename_btn)
   addDeleteEventToItem(file_item_delete_btn)
   addDownloadEventToItem(file_item_link)

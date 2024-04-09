@@ -2,7 +2,6 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.views.decorators.http import require_GET
-from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
@@ -38,6 +37,8 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             resp = create_bucket(str(user.id)) #TODO: check if bucket is actually created
+            if resp.status != 200:
+                return JsonResponse({"message": "Error while creating bucket"}, status=500)
             return redirect('login') 
         else:
             request.session['signup_form_data'] = request.POST.dict()
@@ -59,8 +60,11 @@ class FolderListView(LoginRequiredMixin, View):
         context = {}
         folder_id = self.kwargs.get('folder_id', None)
         if folder_id:
-            folder = Folder.objects.get(id=folder_id) #TODO: maybe usie something to just get the parent_id value
-            context['parent_folder_id'] = folder.parent_folder and folder.parent_folder.id
+            try:        
+                folder = Folder.objects.get(id=folder_id) #TODO: maybe usie something to just get the parent_id value
+                context['parent_folder_id'] = folder.parent_folder and folder.parent_folder.id
+            except Folder.DoesNotExist:
+                return JsonResponse({"message": "Folder Does not Exist"}, status=404)
         context['folder_id'] = folder_id
         context['folders'] = Folder.objects.filter(parent_folder=folder_id, user=request.user)
         context['files'] =  File.objects.filter(folder=folder_id, user=request.user)
@@ -68,12 +72,13 @@ class FolderListView(LoginRequiredMixin, View):
         return render(request, 'folder_list.html', context)
     
     def post(self, request, *args, **kwargs):
-        context = {}
         body_data = json.loads(request.body)
-        print(body_data)
         folder_name = body_data.get('folder_name')
         current_folder_id = request.session.get('current_folder_id') #TODO: We don't really need to pass this to frontend this can be a security flaw
-        new_folder = Folder.objects.create(name=folder_name, parent_folder_id=current_folder_id)
+        if not folder_name:
+            return JsonResponse({"message": 'Folder Name is mandatory'}, status=400)
+
+        new_folder = Folder.objects.create(name=folder_name, parent_folder_id=current_folder_id, user=request.user)
 
         return JsonResponse({"message": 'Folder Created Successfully',
                              "folder_id": new_folder.id}, status=200)
@@ -82,17 +87,26 @@ class FolderListView(LoginRequiredMixin, View):
         folder_id = self.kwargs.get('folder_id')
         body_data = json.loads(request.body)
         update_folder_name = body_data.get('folder_name')
-        print(update_folder_name)
-        folder = Folder.objects.get(id=folder_id)
+        if not update_folder_name:
+            return JsonResponse({"message": "Folder ID and New Folder Name is mandatory"}, status=400)
+        try:
+            folder = Folder.objects.get(id=folder_id, user=request.user)
+        except Folder.DoesNotExist:
+            return JsonResponse({"message": "Folder does not exist"}, status=404)
         folder.name = update_folder_name
         folder.save()
         return JsonResponse({"message": "Updated Succesfully"}, status=200)
     
     def delete(self, request, *args, **kwargs):
         folder_id = self.kwargs.get('folder_id')
-        print(folder_id)
-        folder = Folder.objects.get(id=folder_id)
-        self._delete_folder(folder, str(request.user.id)) #TODO: make this thing common
+        try:
+            folder = Folder.objects.get(id=folder_id, user=request.user)
+        except Folder.DoesNotExist:
+            return JsonResponse({"message": "Folder does not exist"}, status=404)
+        try:
+            self._delete_folder(folder, str(request.user.id)) #TODO: make this thing common
+        except Exception as e:
+            return JsonResponse({"message": "Failed to Delete Folder", "error": str(e)}, status=500)
         # TODO: Actually check the response before deleting 
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
@@ -100,14 +114,20 @@ class FolderListView(LoginRequiredMixin, View):
     def _delete_folder(self, folder, bucket_name):
         folders_inside_folder = Folder.objects.filter(parent_folder=folder)
         for inner_folder in list(folders_inside_folder):
-            self._delete_folder(inner_folder)
+            self._delete_folder(inner_folder, bucket_name)
         print(folder.name)
         files_inside_folder = File.objects.filter(folder=folder)
         files_object_keys = list(map( lambda x: str(x.object_key),files_inside_folder))
         print(files_object_keys)
-        s3_resp = delete_multiple_objects(bucket_name, files_object_keys)
-        files_inside_folder.delete()
-        folder.delete()
+        try:
+            s3_resp = delete_multiple_objects(bucket_name, files_object_keys)
+            if s3_resp.status != 200:
+                return JsonResponse({"message": "Error while Deleting File"}, status=500)
+            files_inside_folder.delete()
+            folder.delete()
+        except Exception as e:
+            raise Exception(f"Failed to Delete folder: {e}")
+
         # TODO: Check if they are getting deleted otherwise throw error
         # TODO: This similar code is used while deleting a file so move comon code to one function and use it at both places
 
@@ -115,50 +135,66 @@ class FolderListView(LoginRequiredMixin, View):
 class FileListView(LoginRequiredMixin, View):
 
     def put(self, request, *args, **kwargs):
-        file_id = self.kwargs.get('file_id')
-        body_data = json.loads(request.body)
-        update_file_name = body_data.get('file_name')
-        print(update_file_name)
-        file = File.objects.get(id=file_id)
-        file.name = update_file_name
-        file.save()
+        try:
+            file_id = self.kwargs.get('file_id')
+            if not file_id:
+                return JsonResponse({"maeesage": "File ID not present"}, status=400)
+            body_data = json.loads(request.body)
+            update_file_name = body_data.get('file_name')
+            print(update_file_name)
+            file = File.objects.get(id=file_id, user=request.user)
+            file.name = update_file_name
+            file.save()
+        except Exception:
+            return JsonResponse({"message": "Error while Updating File Name"}, status=500)
         return JsonResponse({"message": "Updated Succesfully"}, status=200)
     
     def delete(self, request, *args, **kwargs):
-        file_name = request.GET.get('file_name')
-        file_id = self.kwargs.get('file_id')
-        current_folder_id = request.session.get('current_folder_id')
-        print(current_folder_id)
-        if current_folder_id:
-            current_folder = Folder.objects.get(id=current_folder_id)
-            current_folder.is_empty = False
-            current_folder.save()
-        else:
-            current_folder = None
-        print(type(file_id))
-        file = File.objects.get(id=file_id)
-        s3_resp = delete_object(str(request.user.id), file.object_key)
-        file.delete() 
+        try:
+            file_id = self.kwargs.get('file_id')
+            if not file_id:
+                return JsonResponse({"message": "File ID not present"}, status=400)
+            current_folder_id = request.session.get('current_folder_id')
+            print(current_folder_id)
+            if current_folder_id:
+                current_folder = Folder.objects.get(id=current_folder_id, user=request.user)
+                current_folder.is_empty = False
+                current_folder.save()
+            else:
+                current_folder = None
+            print(type(file_id))
+            file = File.objects.get(id=file_id, user=request.user)
+            s3_resp = delete_object(str(request.user.id), file.object_key)
+            if s3_resp.status != 200:
+                return JsonResponse({"message": "Error while Deleting File"}, status=500)
+            file.delete() 
+        except Exception:
+            return JsonResponse({"message": "Error while Deleteing File"}, status=500)
         # TODO: Actually check the response before deleting 
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
     def post(self, request, *args, **kwargs):
-        body_data = json.loads(request.body)
-        print(body_data)
-        object_key = body_data.get('object_key')
-        file_name = body_data.get('file_name')
-        folder_id = body_data.get('folder_id')
-        folder = folder_id  and Folder.objects.get(folder_id)
-        if object_exists(str(request.user.id), object_key):
-            file = File.objects.create(
-                name=file_name,
-                object_key=object_key,
-                folder=folder 
-            )
-            return JsonResponse({"message": "File Created Successfully", "id": file.id}, status=200) 
-        else:
-            return JsonResponse({"message": f"No Object with the given key exists - {object_key} "}, status=404)
-    
+        try:
+            body_data = json.loads(request.body)
+            print(body_data)
+            object_key = body_data.get('object_key')
+            file_name = body_data.get('file_name')
+            folder_id = body_data.get('folder_id')
+            if not file_name or not object_key:
+                return JsonResponse({"message": "File Name and Object key is required"}, status=400)
+            folder = folder_id  and Folder.objects.get(id=folder_id, user=request.user)
+            if object_exists(str(request.user.id), object_key):
+                file = File.objects.create(
+                    name=file_name,
+                    object_key=object_key,
+                    folder=folder,
+                    user=request.user
+                )
+                return JsonResponse({"message": "File Created Successfully", "id": file.id}, status=200) 
+            else:
+                return JsonResponse({"message": f"No Object with the given key exists - {object_key} "}, status=404)
+        except Exception:
+            return JsonResponse({"message": "Error while creating file"}, status=500) 
     # TODO: Check If folder ID is valid
     # TODO: Handle S3 exceptions they should not be shown at frontend
 
@@ -178,7 +214,10 @@ def get_presigned_url(request, *args, **kwargs):
 @require_GET
 @login_required
 def get_presigned_url_for_download(request, file_id, *args, **kwargs):
-    file = File.objects.get(id=file_id)
+    try:
+        file = File.objects.get(id=file_id)
+    except Exception:
+        return JsonResponse({"message": "Error while generating presigned url for download"}, status=500)
     presigned_url = generate_presigned_url(str(request.user.id), object_key=file.object_key, file_name=file.name, for_upload=False)
     return JsonResponse({"presigned_url": presigned_url})
 
