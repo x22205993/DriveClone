@@ -125,3 +125,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ['http://localhost:9900']
 LOGOUT_REDIRECT_URL='/drive/login/'
 LOGIN_URL = '/drive/login/'
+
+ALLOWED_HOSTS=['x22205993-driveclone-env.eba-v3apdfwa.eu-west-1.elasticbeanstalk.com']
