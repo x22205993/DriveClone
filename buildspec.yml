@@ -12,5 +12,5 @@ pre_build:
   - pylint $CODEBUILD_SRC_DIR/*.py
   - pylint $CODEBUILD_SRC_DIR/demoproj/*.py
 artifacts:
-files:
-  - '**/*'
+  files:
+    - '**/*'
