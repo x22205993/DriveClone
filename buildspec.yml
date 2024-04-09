@@ -7,12 +7,13 @@ phases:
     commands:
       - pip install --upgrade pip
       - pip install -r requirements.txt pylint
+      - pip install pylint-django
 
   pre_build:
     commands:
       - python3 --version
       - pylint $CODEBUILD_SRC_DIR/*.py
-      - pylint $CODEBUILD_SRC_DIR/drive/*.py
+      - pylint --rcfile=./.pylintrc $CODEBUILD_SRC_DIR/drive/*.py 
 
 artifacts:
   files:

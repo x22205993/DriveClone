@@ -1,0 +1,5 @@
+[MASTER]
+disable=C0114,W0719,C0303,R0901,W0718
+load-plugins=pylint_django
+ignore=migrations
+django-settings-module=mysite.settings

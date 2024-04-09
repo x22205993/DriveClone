@@ -1,3 +1,5 @@
+import json
+import uuid
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -7,12 +9,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Folder, File
-from .integrations import generate_presigned_url, delete_object, delete_multiple_objects, object_exists, create_bucket
+from .integrations import generate_presigned_url, delete_object, \
+    delete_multiple_objects, object_exists, create_bucket
 from .forms import LoginForm, SignupForm
-import json
-import uuid
 
 def login_view(request):
+    ''' Login Form Handler '''
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -23,45 +25,43 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 return redirect('profile')
-            else:
-                form.add_error(None, 'Invalid username or password')
-                messages.error(request, 'Invalid username or password.')
-                return redirect('login')
+            form.add_error(None, 'Invalid username or password')
+            messages.error(request, 'Invalid username or password.')
+            return redirect('login')
     else:
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
 
 def signup_view(request):
+    ''' User Registration Handler also creates a new bucket for every new user '''
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save()
-            resp = create_bucket(str(user.id)) #TODO: check if bucket is actually created
+            resp = create_bucket(str(user.id))
             if resp.status != 200:
                 return JsonResponse({"message": "Error while creating bucket"}, status=500)
-            return redirect('login') 
-        else:
-            request.session['signup_form_data'] = request.POST.dict()
-            return redirect('signup')
-    else:
-        form_data = request.session.pop('signup_form_data', None)
-        print(form_data)
-        form = SignupForm(data=form_data)
+            return redirect('login')
+        request.session['signup_form_data'] = request.POST.dict()
+        return redirect('signup')
+    form_data = request.session.pop('signup_form_data', None)
+    print(form_data)
+    form = SignupForm(data=form_data)
     
 
     return render(request, 'signup.html', {'form': form,})
 
-#FIXME: Add Validations
-# TODO: Do I need to add bucket field in file and folder model also
 class FolderListView(LoginRequiredMixin, View):
+    ''' Handler for CRUD operations of Folder Model '''
     template_name = "folder_list.html"
 
     def get(self, request, *args, **kwargs):
+        ''' Get all the files and folders inside the current folder. '''
         context = {}
         folder_id = self.kwargs.get('folder_id', None)
         if folder_id:
             try:        
-                folder = Folder.objects.get(id=folder_id) #TODO: maybe usie something to just get the parent_id value
+                folder = Folder.objects.get(id=folder_id)
                 context['parent_folder_id'] = folder.parent_folder and folder.parent_folder.id
             except Folder.DoesNotExist:
                 return JsonResponse({"message": "Folder Does not Exist"}, status=404)
@@ -72,23 +72,27 @@ class FolderListView(LoginRequiredMixin, View):
         return render(request, 'folder_list.html', context)
     
     def post(self, request, *args, **kwargs):
+        ''' Create a new Folder Object '''
         body_data = json.loads(request.body)
         folder_name = body_data.get('folder_name')
-        current_folder_id = request.session.get('current_folder_id') #TODO: We don't really need to pass this to frontend this can be a security flaw
+        current_folder_id = request.session.get('current_folder_id')
         if not folder_name:
             return JsonResponse({"message": 'Folder Name is mandatory'}, status=400)
 
-        new_folder = Folder.objects.create(name=folder_name, parent_folder_id=current_folder_id, user=request.user)
+        new_folder = Folder.objects.create(
+            name=folder_name, parent_folder_id=current_folder_id, user=request.user)
 
         return JsonResponse({"message": 'Folder Created Successfully',
                              "folder_id": new_folder.id}, status=200)
 
     def put(self, request, *args, **kwargs):
+        ''' Update Folder Name '''
         folder_id = self.kwargs.get('folder_id')
         body_data = json.loads(request.body)
         update_folder_name = body_data.get('folder_name')
         if not update_folder_name:
-            return JsonResponse({"message": "Folder ID and New Folder Name is mandatory"}, status=400)
+            return JsonResponse(
+                {"message": "Folder ID and New Folder Name is mandatory"}, status=400)
         try:
             folder = Folder.objects.get(id=folder_id, user=request.user)
         except Folder.DoesNotExist:
@@ -98,20 +102,25 @@ class FolderListView(LoginRequiredMixin, View):
         return JsonResponse({"message": "Updated Succesfully"}, status=200)
     
     def delete(self, request, *args, **kwargs):
+        ''' To delete a folder '''
         folder_id = self.kwargs.get('folder_id')
         try:
             folder = Folder.objects.get(id=folder_id, user=request.user)
         except Folder.DoesNotExist:
             return JsonResponse({"message": "Folder does not exist"}, status=404)
         try:
-            self._delete_folder(folder, str(request.user.id)) #TODO: make this thing common
+            self._delete_folder(folder, str(request.user.id))
         except Exception as e:
             return JsonResponse({"message": "Failed to Delete Folder", "error": str(e)}, status=500)
-        # TODO: Actually check the response before deleting 
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
 
     def _delete_folder(self, folder, bucket_name):
+        '''
+            This Function ensures to recursively 
+            delete all the files and folder inside 
+            the folder that needs to be deleted
+        '''
         folders_inside_folder = Folder.objects.filter(parent_folder=folder)
         for inner_folder in list(folders_inside_folder):
             self._delete_folder(inner_folder, bucket_name)
@@ -122,19 +131,17 @@ class FolderListView(LoginRequiredMixin, View):
         try:
             s3_resp = delete_multiple_objects(bucket_name, files_object_keys)
             if s3_resp.status != 200:
-                return JsonResponse({"message": "Error while Deleting File"}, status=500)
+                raise Exception(f"Failed to Delete folder: {str(s3_resp)}")
             files_inside_folder.delete()
             folder.delete()
         except Exception as e:
-            raise Exception(f"Failed to Delete folder: {e}")
-
-        # TODO: Check if they are getting deleted otherwise throw error
-        # TODO: This similar code is used while deleting a file so move comon code to one function and use it at both places
-
+            raise Exception(f"Failed to Delete folder: {str(e)}") from e
 
 class FileListView(LoginRequiredMixin, View):
+    ''' Handler for CRUD operations of File Object '''
 
     def put(self, request, *args, **kwargs):
+        ''' To rename a file '''
         try:
             file_id = self.kwargs.get('file_id')
             if not file_id:
@@ -150,6 +157,7 @@ class FileListView(LoginRequiredMixin, View):
         return JsonResponse({"message": "Updated Succesfully"}, status=200)
     
     def delete(self, request, *args, **kwargs):
+        ''' To Delete a file object '''
         try:
             file_id = self.kwargs.get('file_id')
             if not file_id:
@@ -170,10 +178,15 @@ class FileListView(LoginRequiredMixin, View):
             file.delete() 
         except Exception:
             return JsonResponse({"message": "Error while Deleteing File"}, status=500)
-        # TODO: Actually check the response before deleting 
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
     def post(self, request, *args, **kwargs):
+        ''' 
+            To Create a file object. Since the file is uploaded to S3 through frontend. 
+            When the upload is completed from frontend it initiates call to this function
+            which then again verifies that the object has been uploaded to S3 and only 
+            then it creates a file object in our database
+        '''
         try:
             body_data = json.loads(request.body)
             print(body_data)
@@ -190,34 +203,36 @@ class FileListView(LoginRequiredMixin, View):
                     folder=folder,
                     user=request.user
                 )
-                return JsonResponse({"message": "File Created Successfully", "id": file.id}, status=200) 
-            else:
-                return JsonResponse({"message": f"No Object with the given key exists - {object_key} "}, status=404)
+                return JsonResponse(
+                    {"message": "File Created Successfully", "id": file.id}, status=200) 
+            return JsonResponse(
+                {"message": f"No Object with the given key exists - {object_key} "}, status=404)
         except Exception:
-            return JsonResponse({"message": "Error while creating file"}, status=500) 
-    # TODO: Check If folder ID is valid
-    # TODO: Handle S3 exceptions they should not be shown at frontend
+            return JsonResponse(
+                {"message": "Error while creating file"}, status=500) 
 
-# TODO: Check if file empty
-# TODO: Folder id should be in backend only ?
-# TODO: This is not the correct way to do things first generate object key and if only it gets create in s3 create it at your end 
 @require_GET
 @login_required
 def get_presigned_url(request, *args, **kwargs):
+    ''' 
+        This function returns the presigned url from S3 to the frontend to upload the object
+    '''
     object_key = uuid.uuid4()
-    presigned_url = generate_presigned_url(str(request.user.id), object_key=object_key, for_upload=True)
+    presigned_url = generate_presigned_url(
+        str(request.user.id), object_key=object_key, for_upload=True)
     return JsonResponse({"presigned_url": presigned_url, "object_key": object_key})
 
-
-# TODO: Duplicate code fix
-# TODO: Check if file empty and file_id null
 @require_GET
 @login_required
 def get_presigned_url_for_download(request, file_id, *args, **kwargs):
+    '''
+        This function returns presigned url for object download
+    '''
     try:
         file = File.objects.get(id=file_id)
     except Exception:
-        return JsonResponse({"message": "Error while generating presigned url for download"}, status=500)
-    presigned_url = generate_presigned_url(str(request.user.id), object_key=file.object_key, file_name=file.name, for_upload=False)
+        return JsonResponse(
+            {"message": "Error while generating presigned url for download"}, status=500)
+    presigned_url = generate_presigned_url(
+        str(request.user.id), object_key=file.object_key, file_name=file.name, for_upload=False)
     return JsonResponse({"presigned_url": presigned_url})
-
