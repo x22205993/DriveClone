@@ -1,6 +1,7 @@
 from django.contrib.auth.views import LogoutView
 from django.urls import path
-from .views import( FolderListView, FileListView, get_presigned_url, get_presigned_url_for_download, login_view, signup_view)
+from .views import( FolderListView, FileListView, get_presigned_url, 
+                   get_presigned_url_for_download, login_view, signup_view)
 
 urlpatterns = [
     path('folders/<str:folder_id>/', FolderListView.as_view()),
