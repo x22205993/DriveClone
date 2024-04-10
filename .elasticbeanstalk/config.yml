@@ -1,2 +1,17 @@
+branch-defaults:
+  main:
+    environment: x22205993-env-3
 global:
-  profile: eb-cli
+  application_name: x22205993-driveclone
+  branch: null
+  default_ec2_keyname: x22205993_key_1
+  default_platform: Python 3.11 running on 64bit Amazon Linux 2023
+  default_region: eu-west-1
+  include_git_submodules: true
+  instance_profile: AWSCloud9SSMInstanceProfile
+  platform_name: null
+  platform_version: null
+  profile: MSCCLOUD-250738637992
+  repository: null
+  sc: git
+  workspace_type: Application
