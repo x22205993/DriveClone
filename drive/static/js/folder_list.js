@@ -1,5 +1,5 @@
 function getCSRFToken() {
-  return document.cookie.split(';').filter(elem => elem.startsWith('csrftoken='))[0].split('=')[1]
+  return document.cookie.split(';').filter(elem => elem.trim().startsWith('csrftoken='))[0].split('=')[1]
 } 
 
 const csrf_token = getCSRFToken();
@@ -62,7 +62,8 @@ class FileUploader {
       }
     })
     console.log(this.file.name, this.file_upload_id)
-    
+    console.log(this.folder)
+    debugger
     let create_file_resp = await fetch('/drive/files/', {
       method: 'POST',
       headers: {
@@ -71,8 +72,8 @@ class FileUploader {
       },
       body: JSON.stringify({
         "object_key": object_key,
-        "file_name": this.file.name,
-        "folder": this.folder
+        "file_name": this.file.name.trim(),
+        "folder_id": this.folder.trim()
       })
     })
     create_file_resp = await create_file_resp.json()

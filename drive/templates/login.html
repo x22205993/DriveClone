@@ -35,7 +35,7 @@
                         {% endif %}
 
                             <form class="text-center" method="post" action="{% url 'login' %}">
-                                {% csrf_token %} 
+                                {%csrf_token%} 
                                 <div class="mb-3"><input data-cy="username" class="form-control" type="text" name="username" id="id_username" placeholder="Username" style="font-size: 20px;" autocomplete="off"></div>
                                 <div class="mb-3"><input data-cy="password" class="form-control" type="password" name="password" id="id_password" placeholder="Password" style="font-size: 20px;" autocomplete="off"></div>
                                 <div class="mb-3"><button data-cy="login-btn" class="btn btn-primary d-block w-100" type="submit" style="font-size: 20px;">Login</button></div>

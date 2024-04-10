@@ -38,9 +38,6 @@ def signup_view(request):
         form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save()
-            resp = create_bucket(str(user.id))
-            if resp.status != 200:
-                return JsonResponse({"message": "Error while creating bucket"}, status=500)
             return redirect('login')
         request.session['signup_form_data'] = request.POST.dict()
         return redirect('signup')
@@ -111,11 +108,12 @@ class FolderListView(LoginRequiredMixin, View):
         try:
             self._delete_folder(folder, str(request.user.id))
         except Exception as e:
+            print(e)
             return JsonResponse({"message": "Failed to Delete Folder", "error": str(e)}, status=500)
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
 
-    def _delete_folder(self, folder, bucket_name):
+    def _delete_folder(self, folder, object_prefix):
         '''
             This Function ensures to recursively 
             delete all the files and folder inside 
@@ -123,15 +121,15 @@ class FolderListView(LoginRequiredMixin, View):
         '''
         folders_inside_folder = Folder.objects.filter(parent_folder=folder)
         for inner_folder in list(folders_inside_folder):
-            self._delete_folder(inner_folder, bucket_name)
+            self._delete_folder(inner_folder, object_prefix)
         print(folder.name)
         files_inside_folder = File.objects.filter(folder=folder)
         files_object_keys = list(map( lambda x: str(x.object_key),files_inside_folder))
         print(files_object_keys)
         try:
-            s3_resp = delete_multiple_objects(bucket_name, files_object_keys)
-            if s3_resp.status != 200:
-                raise Exception(f"Failed to Delete folder: {str(s3_resp)}")
+            s3_resp = delete_multiple_objects(files_object_keys, object_prefix)
+            # if s3_resp.status != 200:
+            #     raise Exception(f"Failed to Delete folder: {str(s3_resp)}")
             files_inside_folder.delete()
             folder.delete()
         except Exception as e:
@@ -172,11 +170,13 @@ class FileListView(LoginRequiredMixin, View):
                 current_folder = None
             print(type(file_id))
             file = File.objects.get(id=file_id, user=request.user)
-            s3_resp = delete_object(str(request.user.id), file.object_key)
-            if s3_resp.status != 200:
-                return JsonResponse({"message": "Error while Deleting File"}, status=500)
+            s3_resp = delete_object(file.object_key, str(request.user.id))
+            print(s3_resp)
+            # if s3_resp.status != 200:
+            #     return JsonResponse({"message": "Error while Deleting File"}, status=500)
             file.delete() 
-        except Exception:
+        except Exception as e:
+            print(str(e))
             return JsonResponse({"message": "Error while Deleteing File"}, status=500)
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
@@ -195,8 +195,11 @@ class FileListView(LoginRequiredMixin, View):
             folder_id = body_data.get('folder_id')
             if not file_name or not object_key:
                 return JsonResponse({"message": "File Name and Object key is required"}, status=400)
-            folder = folder_id  and Folder.objects.get(id=folder_id, user=request.user)
-            if object_exists(str(request.user.id), object_key):
+            folder=None
+            print("FOLDER_ID", folder_id)
+            if folder_id:
+                folder = Folder.objects.get(id=folder_id, user=request.user)
+            if object_exists(object_key, str(request.user.id)):
                 file = File.objects.create(
                     name=file_name,
                     object_key=object_key,
@@ -207,7 +210,8 @@ class FileListView(LoginRequiredMixin, View):
                     {"message": "File Created Successfully", "id": file.id}, status=200) 
             return JsonResponse(
                 {"message": f"No Object with the given key exists - {object_key} "}, status=404)
-        except Exception:
+        except Exception as e:
+            print(str(e))
             return JsonResponse(
                 {"message": "Error while creating file"}, status=500) 
 
@@ -218,8 +222,8 @@ def get_presigned_url(request, *args, **kwargs):
         This function returns the presigned url from S3 to the frontend to upload the object
     '''
     object_key = uuid.uuid4()
-    presigned_url = generate_presigned_url(
-        str(request.user.id), object_key=object_key, for_upload=True)
+    presigned_url = generate_presigned_url(object_key=object_key, 
+                                           prefix=str(request.user.id),for_upload=True)
     return JsonResponse({"presigned_url": presigned_url, "object_key": object_key})
 
 @require_GET
@@ -233,6 +237,7 @@ def get_presigned_url_for_download(request, file_id, *args, **kwargs):
     except Exception:
         return JsonResponse(
             {"message": "Error while generating presigned url for download"}, status=500)
-    presigned_url = generate_presigned_url(
-        str(request.user.id), object_key=file.object_key, file_name=file.name, for_upload=False)
+    presigned_url = generate_presigned_url(object_key=file.object_key, 
+                                           prefix=str(request.user.id), 
+                                           file_name=file.name, for_upload=False)
     return JsonResponse({"presigned_url": presigned_url})
