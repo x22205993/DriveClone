@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title> {% block title %} {% endblock %} </title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fontawesome-all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Navbar-Right-Links-icons.css' %}">
+</head>
+<body>
+    {% block content %}
+    {% endblock %}
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/dom_handler.js' %}"></script>
+    <script src="{% static 'js/file_uploader.js' %}"></script>
+    <script src="{% static 'js/file_service.js' %}"></script>
+    <script src="{% static 'js/folder_service.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

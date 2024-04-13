@@ -1,0 +1,15 @@
+{% extends './item_card.html'%}
+
+{% block data_attr %} 
+    data-folder-id="{{ item.id}}" data-folder-name="{{ item.name}}" data-folder-is-emtpy={% if item.is_empty %}1{% else %}0{% endif %}
+{% endblock%}
+
+{% block card_content %} 
+    <i class="far fa-folder" style="font-size: 20px;"></i>
+    <a data-cy="folder-click" class="pe-auto" href="/drive/folders/{{ item.id }}"> {{ item.name}} </a>
+{% endblock %}
+
+{% block dropdown_items %}
+    <a class="dropdown-item rename-folder-modal-trigger" data-bs-target="{{rename_modal_id}}" data-bs-toggle="modal" href="#">Rename</a>
+    <a class="dropdown-item delete-folder-modal-trigger" data-bs-target="{{delete_modal_id}}" data-bs-toggle="modal" href="#">Delete</a>
+{% endblock %}

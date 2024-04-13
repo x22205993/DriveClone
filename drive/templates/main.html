@@ -1,0 +1,63 @@
+{% extends 'partials/base.html' %}
+{% block title %}Drive{% endblock %}
+{% block content %}
+<main style="font-size: 20px;">
+    {% include './partials/error_alert.html' %}
+    <nav class="navbar navbar-expand-md bg-body py-3">
+        <div class="container"><a class="navbar-brand d-flex align-items-center" href="#"><span class="fs-3 fw-bold">Drive</span></a><button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-2"><span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navcol-2">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"></li>
+                    <li class="nav-item"></li>
+                    <li class="nav-item"></li>
+                    <li class="nav-item dropdown"><a class="nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#" style="background: rgb(13,110,253);color: rgb(255,255,255);border-radius: 5px;padding: 8px 16px;"><i class="fas fa-plus fs-6 me-2 align-self-end"></i>New</a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" data-cy="new-folder-btn" data-bs-target="#modal-1" data-bs-toggle="modal" href="#">New Folder</a>
+                            <label for="file-upload" class="dropdown-item" href="#" style="cursor:pointer;">Upload File</a>
+                            <input type="file" class="dropdown-item" for="file-upload" id="file-upload" style="display:none;">
+                    </li>
+                </ul>
+            </div>
+            <form method="post" action="{% url 'users:logout' %}">
+                {% csrf_token %}
+                <button class="btn ps-3 pb-0 pe-3 ms-0" style="font-size: 16px; color:blue; text-decoration:underline;">Logout</button>
+            </form>
+        </div>
+    </nav>
+    {% include 'partials/new_folder_modal.html' %}
+    {% include 'partials/input_modal.html' with modal_id="modal-2" modal_title="Rename File" input_id="rename-file-input" on_ok="renameFile()" %}
+    {% include 'partials/confirm_modal.html' with modal_id="modal-3" modal_title="Delete File" modal_content="Are you sure you want to delete file <span id='delete-file-name-display'> </span> ?" on_ok="deleteFile()" %}
+    {% include 'partials/input_modal.html' with modal_id="modal-4" modal_title="Rename Folder" input_id="rename-folder-input" on_ok="renameFolder()" %}
+    {% include 'partials/confirm_modal.html' with modal_id="modal-5" modal_title="Delete Folder" modal_content="<span id='folder-has-content-warning'> </span> Are you sure you want to delete the folder <span id='delete-folder-name-display'> </span>?" on_ok="deleteFolder()" %}
+
+<span class="d-none" id="current-folder-id"> {{ folder_id }}</span>
+<template id="item-card-template">
+    {% include './partials/file_item.html' with item="" rename_modal_id="#modal-2" delete_modal_id="#modal-3" %}
+</template>
+<div class="container-fliud"  style="padding: 0px 32px;">
+
+    <div class="row gx-2 gy-2" id="file-items" style="padding: 8px 16px;">
+        <div style="padding: 8px 16px;">
+            {% if parent_folder_id %}
+            <a href="/drive/folders/{{ parent_folder_id }}"> Back </a>
+            {% else %}
+            <a href="/drive/"> Back </a>
+            {% endif %}
+        </div>
+        {% for item in folders %}
+            {% include './partials/folder_item.html' with item=item rename_modal_id="#modal-4" delete_modal_id="#modal-5" %}
+        {% endfor %}
+        {% for item in files %}
+            {% include './partials/file_item.html' with item=item rename_modal_id="#modal-2" delete_modal_id="#modal-3" %}
+        {% endfor %}
+    </div>
+</div>
+<div  class="position-fixed me-5" style="background: var(--bs-body-bg);right: 10px;bottom: 10px;padding: 8px 16px;text-align: left;">
+    <a id="dropdown-btn" class="btn btn-primary mb-2" data-bs-toggle="collapse" aria-expanded="false" aria-controls="collapse-1" href="#" role="button" style="width: 100%;">Upload Queue</a>
+    <div class="collapse show" id="collapse-1" style="background: var(--bs-secondary-bg);">
+        <ul class="list-group" id="upload-queue">
+        </ul>
+    </div>
+</div>
+</main>
+{% endblock %}

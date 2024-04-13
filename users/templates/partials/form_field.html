@@ -1,0 +1,8 @@
+<div class="mb-3">
+    <input {% if field_errors %} class="form-control is-invalid" {% else %} class="form-control" {% endif %} type="{{ type }}" name="{{ name }}" id="{{ id }}" placeholder="{{ placeholder }}" value="{{ value|default:'' }}" data-cy="{{ data_cy }}">
+    <div class="invalid-feedback"> 
+        {% for error in field_errors %}
+            {{ error }} 
+        {% endfor %}
+    </div>
+</div>

@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'drive.apps.DriveConfig'
+    'drive.apps.DriveConfig',
+    'users.apps.UsersConfig'
 ]
 
 MIDDLEWARE = [
@@ -116,13 +117,24 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = 'static'
+STATIC_URL = 'assets/'
+STATIC_ROOT = 'assets'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 CSRF_TRUSTED_ORIGINS = ['http://x22205993-env.eba-v3apdfwa.eu-west-1.elasticbeanstalk.com/', 'http://localhost:9900']
-LOGOUT_REDIRECT_URL='/drive/login/'
-LOGIN_URL = '/drive/login/'
+
+LOGOUT_REDIRECT_URL='/'
+LOGIN_URL = '/users/login'
+
+SESSION_COOKIE_AGE = 86400
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    BASE_DIR / "drive" / "static",
+    BASE_DIR / "users" / "static"
+]

@@ -1,0 +1,15 @@
+{% extends './item_card.html' %}
+
+{% block data_attr %} 
+    data-file-id="{{ item.id}}" data-file-name="{{ item.name}}"
+{% endblock%}
+
+{% block card_content %} 
+    <i class="far fa-file" style="font-size: 20px;"></i>
+    <a class="file-item-link pe-auto" href="#"> {{ item.name}} </a>
+{% endblock %}
+
+{% block dropdown_items %}
+    <a class="dropdown-item rename-file-modal-trigger" data-bs-target="{{rename_modal_id}}" data-bs-toggle="modal" href="#">Rename</a>
+    <a class="dropdown-item delete-file-modal-trigger" data-bs-target="{{delete_modal_id}}" data-bs-toggle="modal" href="#">Delete</a>
+{% endblock %}
