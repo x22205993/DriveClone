@@ -1,0 +1,23 @@
+on:
+  pull_request:
+    branches:
+    - main
+    types: [opened, synchronize, reopened]
+name: CI
+jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Leaked Credentials Checker
+      uses: trufflesecurity/trufflehog@v3.73.0
+    - name: Static Analysis
+      uses: sonarsource/sonarqube-scan-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    - name: E2E Tests  
+      uses: cypress-io/github-action@v6
+    
