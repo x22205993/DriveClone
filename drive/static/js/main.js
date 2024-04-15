@@ -1,3 +1,10 @@
+const folderService = new FolderService();
+const fileService = new FileService();
+const domHandler = new DomHandler();
+
+let selected_file_id = "";
+let selected_folder_id = "";
+
 function getCSRFToken() {
   return document.cookie
     .split(";")
@@ -51,13 +58,6 @@ function validateItemName(e) {
   }
   button.disabled = false;
 }
-
-const folderService = new FolderService();
-const fileService = new FileService();
-const domHandler = new DomHandler();
-
-let selected_file_id = "";
-let selected_folder_id = "";
 
 /* eslint-disable no-unused-vars */
 function addToFileListView(file_id, file) {
@@ -228,7 +228,6 @@ domHandler.getAllRenameFolderModalTriggers().forEach((item) => {
 
 domHandler.getAllDeleteFolderModalTriggers().forEach((item) => {
   item.addEventListener("click", (e) => {
-    console.log(item);
     const data_attrs = domHandler.getDataForFolderElem(item);
     selected_folder_id = data_attrs.folderId;
     selected_folder_name = data_attrs.folderName;
