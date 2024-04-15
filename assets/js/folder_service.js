@@ -5,7 +5,7 @@ class FolderService {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": csrf_token,
+        "X-CSRFToken": getCSRFToken(),
       },
       body: JSON.stringify({
         folder_name: new_folder_name,
@@ -22,7 +22,7 @@ class FolderService {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": csrf_token,
+        "X-CSRFToken": getCSRFToken(),
       },
       body: JSON.stringify({
         folder_name,
@@ -40,7 +40,7 @@ class FolderService {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": csrf_token,
+        "X-CSRFToken": getCSRFToken(),
       },
     });
     resp.status !== 200 && throwError("Delete Folder request failed", resp);

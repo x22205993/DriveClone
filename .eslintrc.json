@@ -1,7 +1,6 @@
 {
   "extends": ["eslint:recommended", "standard", "prettier"],
   "plugins": ["standard"],
-  "files": ["drive/static/js"],
   "rules": {
     "camelcase": "off",
     "no-unused-vars": ["error", { 

@@ -30,7 +30,11 @@
     {% include 'partials/input_modal.html' with modal_id="modal-4" modal_title="Rename Folder" input_id="rename-folder-input" on_ok="renameFolder()" %}
     {% include 'partials/confirm_modal.html' with modal_id="modal-5" modal_title="Delete Folder" modal_content="<span id='folder-has-content-warning'> </span> Are you sure you want to delete the folder <span id='delete-folder-name-display'> </span>?" on_ok="deleteFolder()" %}
 
-<span class="d-none" id="current-folder-id"> {{ folder_id }}</span>
+<span class="d-none" id="current-folder-id">
+    {% if folder_id %}
+        {{ folder_id }}
+    {% endif %}
+</span>
 <template id="item-card-template">
     {% include './partials/file_item.html' with item="" rename_modal_id="#modal-2" delete_modal_id="#modal-3" %}
 </template>
