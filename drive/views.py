@@ -66,8 +66,7 @@ class FolderListView(LoginRequiredMixin, View):
         try:
             self._delete_folder(folder, str(request.user.id))
         except IntegrationException as e:
-            print(e)
-            return JsonResponse({"message": "Failed to Delete Folder", "error": str(e)}, status=500)
+            return JsonResponse({"message": "Failed to Delete Folder"}, status=500)
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
 
