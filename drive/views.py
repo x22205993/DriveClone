@@ -13,6 +13,8 @@ from .models import Folder, File
 from .integrations import generate_presigned_url, delete_object, \
     delete_multiple_objects, object_exists, IntegrationException
 
+INVALID_REQUEST_BODY_ERROR = "Invalid Request Body"
+
 class FolderListView(LoginRequiredMixin, View):
     ''' Handler for CRUD operations of Folder Model '''
     template_name = "main.html"
@@ -21,7 +23,7 @@ class FolderListView(LoginRequiredMixin, View):
         context = {}
         folder_id = self.kwargs.get('folder_id', None)
         if folder_id:    
-            folder = Folder.objects.get(id=folder_id)
+            folder = Folder.objects.get(id=folder_id, user=request.user)
             context['parent_folder_id'] = folder.parent_folder and folder.parent_folder.id
         context['folder_id'] = folder_id
         context['folders'] = Folder.objects.filter(parent_folder=folder_id, user=request.user)
@@ -33,12 +35,12 @@ class FolderListView(LoginRequiredMixin, View):
         ''' Create a new Folder Object '''
         body_data = json_loads_suppress_exc(request.body)
         if not body_data:
-            return JsonResponse({"message": "Invalid Request Body"}, status=400)
+            return JsonResponse({"message": INVALID_REQUEST_BODY_ERROR}, status=400)
         folder_name = body_data.get('folder_name')
         current_folder_id = request.session.get('current_folder_id')
         if not folder_name:
             return JsonResponse({"message": 'Folder Name is mandatory'}, status=400)
-        new_folder = Folder.objects.create(
+        Folder.objects.create(
             name=folder_name, parent_folder_id=current_folder_id, user=request.user)
         return JsonResponse({"message": "Folder created succesfully "}, status=200)
 
@@ -47,7 +49,7 @@ class FolderListView(LoginRequiredMixin, View):
         folder_id = self.kwargs.get('folder_id')
         body_data = json_loads_suppress_exc(request.body)
         if not body_data:
-            return JsonResponse({"message": "Invalid Request Body"}, status=400)
+            return JsonResponse({"message": INVALID_REQUEST_BODY_ERROR}, status=400)
         update_folder_name = body_data.get('folder_name')
         if not update_folder_name:
             return JsonResponse(
@@ -64,8 +66,7 @@ class FolderListView(LoginRequiredMixin, View):
         try:
             self._delete_folder(folder, str(request.user.id))
         except IntegrationException as e:
-            print(e)
-            return JsonResponse({"message": "Failed to Delete Folder", "error": str(e)}, status=500)
+            return JsonResponse({"message": "Failed to Delete Folder"}, status=500)
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
 
@@ -96,7 +97,7 @@ class FileListView(LoginRequiredMixin, View):
             return JsonResponse({"message": "File ID not present"}, status=400)
         body_data = json_loads_suppress_exc(request.body)
         if not body_data:
-            return JsonResponse({"message": "Invalid Request Body"}, status=400)
+            return JsonResponse({"message": INVALID_REQUEST_BODY_ERROR}, status=400)
         update_file_name = body_data.get('file_name')
         print(update_file_name)
         file = File.objects.get(id=file_id, user=request.user)
@@ -171,7 +172,7 @@ def get_presigned_url(request, *args, **kwargs):
         object_key = uuid.uuid4()
         presigned_url = generate_presigned_url(object_key=object_key, 
                                             prefix=str(request.user.id),for_upload=True)
-    except IntegrationException as e:
+    except IntegrationException:
         return JsonResponse({"message": "Error while getting download url"}, status=500)
     return JsonResponse({"presigned_url": presigned_url, "object_key": object_key}, status=200)
 
@@ -186,6 +187,6 @@ def get_presigned_url_for_download(request, file_id, *args, **kwargs):
         presigned_url = generate_presigned_url(object_key=file.object_key, 
                                            prefix=str(request.user.id), 
                                            file_name=file.name, for_upload=False)
-    except IntegrationException as e:
+    except IntegrationException:
         return JsonResponse({"message": "Error while getting download url"}, status=500)
     return JsonResponse({"presigned_url": presigned_url}, status=200)

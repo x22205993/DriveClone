@@ -45,7 +45,7 @@ def generate_presigned_url(object_key, prefix, file_name=None, for_upload=False)
             ExpiresIn=EXPIRATION_TIME
         )
     except botocore.exceptions.ClientError as error:
-        raise IntegrationException(error, f'Failed to Generate PreSignedUrl for object key - {str(object_key)}')
+        raise IntegrationException(error, f'Failed to Generate PreSignedUrl for object key - {str(object_key)}') from error
     return resp
 
 def delete_object(object_key, prefix):
@@ -58,7 +58,7 @@ def delete_object(object_key, prefix):
             Bucket=BUCKET_NAME,
             Key=str(object_key)) 
     except botocore.exceptions.ClientError as error:
-        raise IntegrationException(error, f'Failed to delete object for object key - {str(object_key)}')
+        raise IntegrationException(error, f'Failed to delete object for object key - {str(object_key)}') from error
     return response
 
 def delete_multiple_objects(object_keys, prefix):
@@ -68,15 +68,16 @@ def delete_multiple_objects(object_keys, prefix):
     try:
         response = s3_client.delete_objects(
                     Bucket=BUCKET_NAME,
-                    Delete={"Objects": [{"Key": add_prefix_to_object_key(key, prefix)} for key in object_keys]})
+                    Delete={"Objects": [{"Key": add_prefix_to_object_key(key, prefix)} 
+                                        for key in object_keys]})
     except botocore.exceptions.ClientError as error:
-        raise IntegrationException(error, f'Failure while deleting multiple objects for object keys - {str(object_keys)}')
+        raise IntegrationException(error, f'Failure while deleting multiple objects for object keys - {str(object_keys)}') from error
     return response
 
 def object_exists(object_key, prefix):
     ''' Check if Object exists in the speicifed bucket '''
     if not prefix:
-        raise Exception("Object Prefix is mandatory")
+        raise IntegrationException("Object Prefix is mandatory")
     object_key = add_prefix_to_object_key(object_key, prefix)
     try:
         s3_client.get_object_attributes(
@@ -87,7 +88,7 @@ def object_exists(object_key, prefix):
     except s3_client.exceptions.NoSuchKey:
         return False
     except botocore.exceptions.ClientError as error:
-        raise IntegrationException(error, f'Failed to Get Object attribute for object key - {str(object_key)}')
+        raise IntegrationException(error, f'Failed to Get Object attribute for object key - {str(object_key)}') from error
     return True
 
 def create_bucket(bucket_name):
@@ -109,7 +110,7 @@ def create_bucket(bucket_name):
             }
         )
     except botocore.exceptions.ClientError as error:
-        raise IntegrationException(error, f'Failed to Create Bucket for Bucket Name - {str(bucket_name)}')
+        raise IntegrationException(error, f'Failed to Create Bucket for Bucket Name - {str(bucket_name)}') from error
     return response
 
 def add_prefix_to_object_key(object_key, prefix):

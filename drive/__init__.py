@@ -5,4 +5,4 @@ def json_loads_suppress_exc(body):
         return body
     except json.JSONDecodeError as e:
         print(e)
-    
+    return None

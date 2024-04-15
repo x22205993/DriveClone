@@ -8,7 +8,7 @@ global:
   default_platform: Python 3.11 running on 64bit Amazon Linux 2023
   default_region: eu-west-1
   include_git_submodules: true
-  instance_profile: AWSCloud9SSMInstanceProfile
+  instance_profile: None
   platform_name: null
   platform_version: null
   profile: MSCCLOUD-250738637992
