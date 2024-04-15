@@ -40,7 +40,7 @@ class FileUploader {
     const file_upload_item = document.createElement("li");
     file_upload_item.classList.add("list-group-item");
     file_upload_item.id = this.file_upload_id;
-    file_upload_item.innerHTML = `<i class="far fa-file"></i><a href="#" class="ps-2"> ${DOMPurify.sanitize(this.file.name)}</a>`;
+    file_upload_item.innerHTML = `<i class="far fa-file"></i><a href="#" class="ps-2"> ${(this.file.name)}</a>`;
     this.upload_queue_div.appendChild(file_upload_item);
     this.upload_queue_collapse_element.classList.add("show");
   }
