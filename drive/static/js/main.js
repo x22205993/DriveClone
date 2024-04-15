@@ -1,4 +1,3 @@
-folderServce = 5
 const folderService = new FolderService();
 const fileService = new FileService();
 const domHandler = new DomHandler();
