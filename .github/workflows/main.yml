@@ -11,6 +11,6 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: E2E Tests  
-      uses: cypress-io/github-action@v6
+    - name: Super-Linter
+      uses: super-linter/super-linter@v6.3.1
     
