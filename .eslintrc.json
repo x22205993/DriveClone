@@ -1,0 +1,26 @@
+{
+  "extends": ["eslint:recommended", "standard", "prettier"],
+  "plugins": ["standard"],
+  "files": ["drive/static/js"],
+  "rules": {
+    "camelcase": "off",
+    "no-unused-vars": ["error", { 
+      "varsIgnorePattern": "(DomHandler|FileService|FileUploader|csrf_token|addToFileListView|FolderService|throwError)"
+      }]
+  }, 
+  "globals": {
+    "csrf_token": "readonly",
+    "throwError": "readonly",
+    "FileService": "readonly",
+    "FolderService": "readonly",
+    "FileUploader": "readonly",
+    "DomHandler": "readonly",
+    "fileService": "readonly",
+    "folderService": "readonly",
+    "domHandler": "readonly",
+    "selected_file_id": "writable",
+    "selected_file_name": "writable",
+    "selected_folder_name": "writable",
+    "addToFileListView": "readonly"
+  }
+}
