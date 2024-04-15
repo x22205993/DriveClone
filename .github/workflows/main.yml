@@ -3,7 +3,7 @@ on:
     branches:
     - main
     types: [opened, synchronize, reopened]
-name: CI
+name: Static Code Analysis
 jobs:
   sonarqube:
     runs-on: ubuntu-latest
