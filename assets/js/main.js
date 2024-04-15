@@ -202,14 +202,12 @@ domHandler.getCreateFolderButton().addEventListener("click", (e) => {
 
 domHandler.getFileUploadInput().addEventListener("change", (e) => {
   const folder = domHandler.getCurrentFolderElem().innerText;
-  console.log(folder);
   const file = domHandler.getFileUploadInput().files[0];
   const file_uploader = new FileUploader(file, folder);
   file_uploader
     .uploadFile()
     .then(() => {})
     .catch((error) => {
-      console.log(error);
       showError("Upload File Failed");
     });
   domHandler.getFileUploadInput().value = "";

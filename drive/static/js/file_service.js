@@ -7,7 +7,7 @@ class FileService {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": csrf_token,
+          "X-CSRFToken": getCSRFToken(),
         },
       },
     );
@@ -45,7 +45,7 @@ class FileService {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": csrf_token,
+        "X-CSRFToken": getCSRFToken(),
       },
       body: JSON.stringify({
         object_key,
@@ -65,7 +65,7 @@ class FileService {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": csrf_token,
+        "X-CSRFToken": getCSRFToken(),
       },
       body: JSON.stringify({
         file_name,
@@ -82,7 +82,7 @@ class FileService {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": csrf_token,
+        "X-CSRFToken": getCSRFToken(),
       },
     });
     resp.status !== 200 && throwError("Delete File request failed", resp);

@@ -23,15 +23,11 @@ class FileUploader {
       presigned_url_resp.presigned_url,
       this.file,
     );
-    console.log(this.file.name, this.file_upload_id);
-    console.log(this.folder);
     const create_file_resp = await fileService.createFile(
       object_key,
       this.file.name.trim(),
       this.folder.trim(),
     );
-    console.log(create_file_resp);
-    console.log(this.file.name, this.file_upload_id);
     this.removeFromFileQueueDisplay();
     addToFileListView(create_file_resp.id, this.file);
   }

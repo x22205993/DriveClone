@@ -140,19 +140,26 @@ class FileListView(LoginRequiredMixin, View):
             print(body_data)
             object_key = body_data.get('object_key')
             file_name = body_data.get('file_name')
-            folder_id = body_data.get('folder_id')
+            folder_id = body_data.get('folder_id', "")
             if not file_name or not object_key:
                 return JsonResponse({"message": "File Name and Object key is required"}, status=400)
             folder=None
             if folder_id:
                 folder = Folder.objects.get(id=folder_id, user=request.user)
             if object_exists(object_key, str(request.user.id)):
-                file = File.objects.create(
-                    name=file_name,
-                    object_key=object_key,
-                    folder=folder,
-                    user=request.user
-                )
+                if folder:
+                    file = File.objects.create(
+                        name=file_name,
+                        object_key=object_key,
+                        folder=folder,
+                        user=request.user
+                    )
+                else:
+                    file = File.objects.create(
+                        name=file_name,
+                        object_key=object_key,
+                        user=request.user
+                    ) 
                 return JsonResponse(
                     {"message": "File Created Successfully", "id": file.id}, status=200) 
             return JsonResponse(
