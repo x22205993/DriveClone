@@ -4,7 +4,7 @@
   "rules": {
     "camelcase": "off",
     "no-unused-vars": ["error", { 
-      "varsIgnorePattern": "(DomHandler|FileService|FileUploader|csrf_token|addToFileListView|FolderService|throwError)"
+      "varsIgnorePattern": "(DomHandler|FileService|FileUploader|csrf_token|addToFileListView|FolderService|throwError|getCSRFToken)"
       }]
   }, 
   "globals": {
