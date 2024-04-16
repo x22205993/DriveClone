@@ -4,7 +4,6 @@ import boto3
 import botocore
 
 
-
 aws_secret_access_key = "SaTW+yvnFTvFXC7rWZMKuSbWQjzZWvkobyaU3f4y"  
 class IntegrationException(Exception):
     def __init__(self, error=None, message="Integration Error"):
