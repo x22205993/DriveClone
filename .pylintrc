@@ -1,5 +1,5 @@
 [MASTER]
-disable=C0114,W0719,C0303,R0901,W0718,C0115,C0116,C0301
+disable=C0114,C0303,C0115,C0116,C0301
 load-plugins=pylint_django
 ignore=migrations
 django-settings-module=mysite.settings
