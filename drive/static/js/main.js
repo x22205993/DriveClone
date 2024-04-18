@@ -28,6 +28,7 @@ function closeCurrentModal() {
   current_modal_backdrop.classList.remove("show");
 }
 
+// Validation of File Name and Folder Name input in the Rename File, Rename Folder and New Folder Modal
 /* eslint-disable no-unused-vars */
 function validateItemName(e) {
   const button = domHandler.getCurrentModalButton();
@@ -51,6 +52,7 @@ function validateItemName(e) {
     error_div.innerText = "Field is required";
     return;
   }
+  // If the value is not changed we don't need to actually call API to update the name
   if (oldValue != null && inputValue === oldValue) {
     button.disabled = true;
     return;
@@ -58,6 +60,9 @@ function validateItemName(e) {
   button.disabled = false;
 }
 
+  // We cannot refresh the browser after the file is added otherwise it will abort ongoing uploads to S3
+  // That's why explicitily adding file object to the view. 
+  // Once the page refreshes backend will render the same View
 /* eslint-disable no-unused-vars */
 function addToFileListView(file_id, file) {
   const item_card = domHandler.getItemCardTemplate().content.cloneNode(true);
@@ -115,7 +120,6 @@ function addRenameEventToItem(item) {
 /* eslint-disable no-unused-vars */
 function renameFile() {
   const file_name = domHandler.getRenameModalFileNameInput().value;
-  console.log(selected_file_id);
   fileService
     .updateFileName(selected_file_id, file_name)
     .then((resp) => {
@@ -144,8 +148,6 @@ function addDeleteEventToItem(item) {
 
 /* eslint-disable no-unused-vars */
 function deleteFile() {
-  console.log("delete file called");
-  console.log(selected_file_id);
   fileService
     .deleteFile(selected_file_id)
     .then((resp) => {
@@ -176,13 +178,16 @@ function deleteFolder() {
     .then((resp) => {
       window.location.reload();
     })
-    .catch((error) => {
-      console.log(error);
+    .catch(() => {
       closeCurrentModal();
       showError("Delete Folder Failed");
     });
 }
 
+// Add event listeners 
+// To download file on click 
+// Call rename function when the Rename button  in the rename modal is clicked
+// Call delete function when the Delete button in the Delete modal is clicked
 addDownloadEventToItems();
 addRenameEventsToItems();
 addDeleteEventToItems();
@@ -199,6 +204,7 @@ domHandler.getCreateFolderButton().addEventListener("click", (e) => {
     });
 });
 
+// Whenever file is selected in file menu this event is called which then invokes upload process
 domHandler.getFileUploadInput().addEventListener("change", (e) => {
   const folder = domHandler.getCurrentFolderElem().innerText;
   const file = domHandler.getFileUploadInput().files[0];
@@ -206,13 +212,13 @@ domHandler.getFileUploadInput().addEventListener("change", (e) => {
   file_uploader
     .uploadFile()
     .then(() => {})
-    .catch((error) => {
-      console.log(error);
+    .catch(() => {
       showError("Upload File Failed");
     });
   domHandler.getFileUploadInput().value = "";
 });
 
+// We need to store the ID of the Selcted Folder or File whenever we open a modal for deletion or rename 
 domHandler.getAllRenameFolderModalTriggers().forEach((item) => {
   item.addEventListener("click", (e) => {
     const data_attrs = domHandler.getDataForFolderElem(item);
@@ -238,10 +244,12 @@ domHandler.getAllDeleteFolderModalTriggers().forEach((item) => {
   });
 });
 
+// Cross Button Impleentation of the Error Alert 
 domHandler.getHideErrorAlertButton().addEventListener("click", (evt) => {
   domHandler.getErrorAlertDiv().classList.add("d-none");
 });
 
+// Always reset vaidations when modal closes
 domHandler.getAllValidationModals().forEach((modal) => [
   modal.addEventListener("hide.bs.modal", () => {
     const input = domHandler.getCurrentModalInput();

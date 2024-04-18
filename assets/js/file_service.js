@@ -1,4 +1,5 @@
 class FileService {
+  // This class is responsible for calling backend API for File Resource
   async getPresignedUrlForUpload(file_name) {
     file_name || throwError("Expected File Name is missing");
     let resp = await fetch(
@@ -40,7 +41,6 @@ class FileService {
   async createFile(object_key, file_name, folder_id) {
     (object_key && file_name) ||
       throwError("Expected Object Key, File Name is missing");
-    console.log("CREATE FILED", object_key, file_name, folder_id);
     let resp = await fetch("/drive/files/", {
       method: "POST",
       headers: {

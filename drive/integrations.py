@@ -4,6 +4,7 @@ import boto3
 import botocore
 
 class IntegrationException(Exception):
+    '''This exception should be only raised by errors from third party integrations like S3'''
     def __init__(self, error=None, message="Integration Error"):
         self.message = message
         self.error_code = ""
@@ -15,9 +16,12 @@ class IntegrationException(Exception):
         super().__init__(self.message)
 
 
-EXPIRATION_TIME = 600
+
+EXPIRATION_TIME = 10
 BUCKET_NAME = "x22205993-bucket"
-BUCKET_PREFIX = "x22205993-"
+
+# To ensure new buckets were created with this prefix this is not getting used anywhere as of now
+BUCKET_PREFIX = "x22205993-" 
 
 s3_client = boto3.client('s3')
 
@@ -29,6 +33,8 @@ def generate_presigned_url(object_key, prefix, file_name=None, for_upload=False)
         "Bucket": BUCKET_NAME
     }
 
+    # S3 Client Methods Put Object and Get Object have different parameters 
+    # while downloading file object filename is needed as S3 object key is a random UUID
     if for_upload:
         client_method = "put_object"
         params.update({ 'ContentType': 'application/octet-stream'})
@@ -62,7 +68,10 @@ def delete_object(object_key, prefix):
     return response
 
 def delete_multiple_objects(object_keys, prefix):
-    ''' Delete Multiple Objects from S3 Bucket in single request'''
+    ''' Delete Multiple Objects from S3 Bucket in single request 
+        In this function we get an array of object keys and prefix here is the User ID
+        for each object key we are appending the prefix and passing the array to delete_objects method.
+    '''
     if not prefix or not object_keys:
         raise IntegrationException("Object Prefix and Object key is required ")
     try:
@@ -86,11 +95,13 @@ def object_exists(object_key, prefix):
             ObjectAttributes=["ObjectSize"]
         )
     except s3_client.exceptions.NoSuchKey:
+        # If object is not present boto3 client library throws this error we don't need to check response.
         return False
     except botocore.exceptions.ClientError as error:
         raise IntegrationException(error, f'Failed to Get Object attribute for object key - {str(object_key)}') from error
     return True
 
+# This function is not currently being used. 
 def create_bucket(bucket_name):
     ''' Create bucket in S3 '''
     if not bucket_name:
@@ -114,5 +125,5 @@ def create_bucket(bucket_name):
     return response
 
 def add_prefix_to_object_key(object_key, prefix):
-    ''' By Default all the bucket names will be prefixed by the Bucket Prefix '''
+    ''' Appends Object Key with prefix and '/'  '''
     return str(prefix) + "/" + str(object_key) 

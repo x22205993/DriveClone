@@ -14,6 +14,10 @@ class FileUploader {
   }
 
   async uploadFile() {
+    // Add it to Upload Queue while it is being uploaded
+    // This being  async function will ensure api calls will happen Synchronously 
+    // Only then will it be removed from the Upload Queue
+    // File Upload ID is used to identify the List Item HTML Elem in the Upload Queue Div
     this.addToFileQueueDisplay();
     const presigned_url_resp = await fileService.getPresignedUrlForUpload(
       this.file.name,
@@ -29,6 +33,9 @@ class FileUploader {
       this.folder.trim(),
     );
     this.removeFromFileQueueDisplay();
+    // We cannot refresh the browser after the file is added otherwise it will abort ongoing uploads to S3
+    // That's why explicitily adding file object to the view. 
+    // Once the page refreshes backend will render the same View
     addToFileListView(create_file_resp.id, this.file);
   }
 
