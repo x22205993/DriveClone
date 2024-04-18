@@ -16,7 +16,10 @@ from .integrations import generate_presigned_url, delete_object, \
 INVALID_REQUEST_BODY_ERROR = "Invalid Request Body"
 
 class FolderListView(LoginRequiredMixin, View):
-    ''' Handler for CRUD operations of Folder Model '''
+    ''' Handler for CRUD operations of Folder Model 
+        Current Folder ID of the user stores the ID of the folder where user is in currently.
+        Folders stored in the Root Folder has no folder ID. They are just fetched on the basis of User ID 
+    '''
     template_name = "main.html"
     def get(self, request, *args, **kwargs):
         ''' Get all the files and folders inside the current folder. '''
@@ -74,12 +77,11 @@ class FolderListView(LoginRequiredMixin, View):
         '''
             This Function ensures to recursively 
             delete all the files and folder inside 
-            the folder that needs to be deleted
+            the target folder that needs to be deleted
         '''
         folders_inside_folder = Folder.objects.filter(parent_folder=folder)
         for inner_folder in list(folders_inside_folder):
             self._delete_folder(inner_folder, object_prefix)
-        print(folder.name)
         files_inside_folder = File.objects.filter(folder=folder)
         files_object_keys = list(map( lambda x: str(x.object_key),files_inside_folder))
         if files_object_keys:
@@ -88,7 +90,9 @@ class FolderListView(LoginRequiredMixin, View):
         folder.delete()
 
 class FileListView(LoginRequiredMixin, View):
-    ''' Handler for CRUD operations of File Object '''
+    ''' Handler for CRUD operations of File Object 
+        Files stored in the Root Folder has no folder ID. They are just fetched on the basis of User ID 
+    '''
 
     def put(self, request, *args, **kwargs):
         ''' To rename a file '''
@@ -99,32 +103,29 @@ class FileListView(LoginRequiredMixin, View):
         if not body_data:
             return JsonResponse({"message": INVALID_REQUEST_BODY_ERROR}, status=400)
         update_file_name = body_data.get('file_name')
-        print(update_file_name)
         file = File.objects.get(id=file_id, user=request.user)
         file.name = update_file_name
         file.save()
         return JsonResponse({"message": "Updated Succesfully"}, status=200)
     
     def delete(self, request, *args, **kwargs):
-        ''' To Delete a file object '''
+        ''' To Delete a file object. First we delete from S3 bucket and then from the DB'''
         try:
             file_id = self.kwargs.get('file_id')
             if not file_id:
                 return JsonResponse({"message": "File ID not present"}, status=400)
             current_folder_id = request.session.get('current_folder_id')
-            print(current_folder_id)
             if current_folder_id:
                 current_folder = Folder.objects.get(id=current_folder_id, user=request.user)
                 current_folder.is_empty = False
                 current_folder.save()
             else:
                 current_folder = None
-            print(type(file_id))
             file = File.objects.get(id=file_id, user=request.user)
+            # If S3 deletion fail it will raise error and the file.delete() call will not be invoked
             delete_object(file.object_key, str(request.user.id))
             file.delete() 
         except IntegrationException as e:
-            print(str(e))
             return JsonResponse({"message": "Error while Deleteing File"}, status=500)
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
@@ -137,7 +138,6 @@ class FileListView(LoginRequiredMixin, View):
         '''
         try:
             body_data = json.loads(request.body)
-            print(body_data)
             object_key = body_data.get('object_key')
             file_name = body_data.get('file_name')
             folder_id = body_data.get('folder_id', "")
@@ -154,18 +154,11 @@ class FileListView(LoginRequiredMixin, View):
                         folder=folder,
                         user=request.user
                     )
-                else:
-                    file = File.objects.create(
-                        name=file_name,
-                        object_key=object_key,
-                        user=request.user
-                    ) 
                 return JsonResponse(
                     {"message": "File Created Successfully", "id": file.id}, status=200) 
             return JsonResponse(
                 {"message": f"No Object with the given key exists - {object_key} "}, status=404)
         except IntegrationException as e:
-            print(str(e))
             return JsonResponse(
                 {"message": "Error while creating file"}, status=500) 
 

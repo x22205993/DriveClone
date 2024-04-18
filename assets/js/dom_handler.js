@@ -1,4 +1,7 @@
 class DomHandler {
+// This class is used to maintain a separation of concern between JS code and UI elements. 
+// Primarily to handle UI changes in JS code with ease 
+
   constructor() {
     this.create_folder_button = this.getById("create-folder");
     this.file_upload_input = this.getById("file-upload");

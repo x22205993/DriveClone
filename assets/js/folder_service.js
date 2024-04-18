@@ -1,4 +1,5 @@
 class FolderService {
+  // This class is responsible for calling backend API for Folder Resource
   async createFolder(new_folder_name) {
     new_folder_name || throwError("Expected New Folder name is missing");
     const resp = await fetch("/drive/folders/", {

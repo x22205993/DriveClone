@@ -1,4 +1,6 @@
 class FolderService {
+// This class handles all the api calls to backend related to Folders 
+
   async createFolder(new_folder_name) {
     new_folder_name || throwError("Expected New Folder name is missing");
     const resp = await fetch("/drive/folders/", {
@@ -35,7 +37,6 @@ class FolderService {
 
   async deleteFolder(folder_id) {
     folder_id || throwError("Expected Folder ID is missing");
-    console.log(folder_id);
     let resp = await fetch("/drive/folders/" + folder_id + "/", {
       method: "DELETE",
       headers: {
