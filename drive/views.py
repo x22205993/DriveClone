@@ -147,13 +147,12 @@ class FileListView(LoginRequiredMixin, View):
             if folder_id:
                 folder = Folder.objects.get(id=folder_id, user=request.user)
             if object_exists(object_key, str(request.user.id)):
-                if folder:
-                    file = File.objects.create(
-                        name=file_name,
-                        object_key=object_key,
-                        folder=folder,
-                        user=request.user
-                    )
+                file = File.objects.create(
+                    name=file_name,
+                    object_key=object_key,
+                    folder=folder,
+                    user=request.user
+                )
                 return JsonResponse(
                     {"message": "File Created Successfully", "id": file.id}, status=200) 
             return JsonResponse(
