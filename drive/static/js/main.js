@@ -178,7 +178,7 @@ function deleteFolder() {
     .then((resp) => {
       window.location.reload();
     })
-    .catch((error) => {
+    .catch(() => {
       closeCurrentModal();
       showError("Delete Folder Failed");
     });
@@ -212,7 +212,7 @@ domHandler.getFileUploadInput().addEventListener("change", (e) => {
   file_uploader
     .uploadFile()
     .then(() => {})
-    .catch((error) => {
+    .catch(() => {
       showError("Upload File Failed");
     });
   domHandler.getFileUploadInput().value = "";

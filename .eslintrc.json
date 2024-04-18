@@ -20,6 +20,7 @@
     "selected_file_id": "writable",
     "selected_file_name": "writable",
     "selected_folder_name": "writable",
-    "addToFileListView": "readonly"
+    "addToFileListView": "readonly",
+    "getCSRFToken": "readonly"
   }
 }
