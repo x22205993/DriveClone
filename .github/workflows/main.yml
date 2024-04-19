@@ -25,3 +25,4 @@ jobs:
        LINTER_RULES_PATH: '.'
        CREATE_LOG_FILE: true
        PYTHON_PYLINT_CONFIG_FILE: .pylintrc
+       LOG_FILE: super-linter.log
