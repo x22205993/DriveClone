@@ -4,9 +4,10 @@ from django.core import validators
 from django.core.validators import RegexValidator, MaxLengthValidator, validate_email
 from django.contrib.auth.models import User  # pylint: disable=imported-auth-user
 
-name_validators = [RegexValidator(r'^[a-zA-Z ]*$', 'Invalid Character only letters allowed'),
+name_validators = [RegexValidator(r'^[a-zA-Z ]*$', 'Invalid Input only letters are allowed'),
                    MaxLengthValidator(30, 'Username cannot be more than 30 characters')]
-username_validators = [RegexValidator(r'^[a-zA-Z0-9_ ]*$', 'Invalid Character only letters, digits and _ allowed'),
+
+username_validators = [RegexValidator(r'^[a-zA-Z0-9_ ]*$', 'Invalid Input only letters, digits and _  are allowed'),
                        MaxLengthValidator(30, 'Username cannot be more than 30 characters')]
 
 
