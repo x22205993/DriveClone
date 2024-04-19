@@ -9,6 +9,7 @@ name_validators = [RegexValidator(r'^[a-zA-Z ]*$', 'Invalid Input only letters a
 username_validators = [RegexValidator(r'^[a-zA-Z0-9_ ]*$', 'Invalid Input only letters, digits and _ are allowed'),
                        MaxLengthValidator(30, 'Username cannot be more than 30 characters')]
 
+MY_SECRET='x2220499'
 
 # pylint: disable=too-few-public-methods
 class LoginForm(forms.Form):
