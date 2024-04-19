@@ -126,7 +126,7 @@ class FileListView(LoginRequiredMixin, View):
             delete_object(file.object_key, str(request.user.id))
             file.delete() 
         except IntegrationException as e:
-            return JsonResponse({"message": "Error while Deleteing File"}, status=500)
+            return JsonResponse({"message": "Error while Deleteing File", "exc": str(e)}, status=500)
         return JsonResponse({"message": "File Deleted Successfully"}, status=200)
 
     def post(self, request, *args, **kwargs):
