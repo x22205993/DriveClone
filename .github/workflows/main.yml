@@ -23,4 +23,5 @@ jobs:
        JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.json
        VALIDATE_PYTHON: true
        LINTER_RULES_PATH: '.'
-       
+       CREATE_LOG_FILE: true
+       PYTHON_PYLINT_CONFIG_FILE: .pylintrc
