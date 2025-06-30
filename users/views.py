@@ -3,8 +3,15 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 from .forms import LoginForm, SignupForm
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
 
-# Create your views here.
+def login(request):
+    username = request.username
+    password = request.password
+    print("Django - ", username, " - ", password)
+    return JsonResponse({"Resp": "success"}, status=200)
+
 def login_view(request):
     ''' Login Form Handler '''
     if request.method == 'POST':

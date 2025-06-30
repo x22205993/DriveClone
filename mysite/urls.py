@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("drive/", include("drive.urls")),
     path("users/", include("users.urls")),
-    path('', TemplateView.as_view(template_name='landing_page.html'))
+    path('', TemplateView.as_view(template_name='landing_page.html')),
+    path("files/", include("filedrive.urls"))
 ]

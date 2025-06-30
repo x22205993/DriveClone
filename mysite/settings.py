@@ -25,8 +25,9 @@ SECRET_KEY = 'django-insecure-tr%0%!w^$lqcs9ubx6nmongc3sfxv6%dp9hi1gi2pdw)+&tu$q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['x22205993-env.eba-v3apdfwa.eu-west-1.elasticbeanstalk.com', 'localhost']
+ALLOWED_HOSTS = ['x22205993-env.eba-v3apdfwa.eu-west-1.elasticbeanstalk.com', 'localhost', '127.0.0.1']
 
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -38,17 +39,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drive.apps.DriveConfig',
-    'users.apps.UsersConfig'
+    'users.apps.UsersConfig',
+    'filedrive',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173"
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -69,6 +77,16 @@ TEMPLATES = [
     },
 ]
 
+# REST_FRAMEWORK =  {
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework.authentication.BasicAuthentication',
+#         'rest_framework.authentication.SessionAuthentication'
+#     ],
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ]
+# }
+
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
 
@@ -82,6 +100,10 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    'filedrive.backends.EmailAuthBackend',
+    'django.contrib.auth.backends.ModelBackend'
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -125,7 +147,7 @@ STATIC_ROOT = 'assets'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CSRF_TRUSTED_ORIGINS = ['http://x22205993-env.eba-v3apdfwa.eu-west-1.elasticbeanstalk.com/', 'http://localhost:9900']
+CSRF_TRUSTED_ORIGINS = ['http://x22205993-env.eba-v3apdfwa.eu-west-1.elasticbeanstalk.com/', 'http://localhost:9900', 'http://127.0.0.1:8000', 'http://localhost:5173']
 
 LOGOUT_REDIRECT_URL='/'
 LOGIN_URL = '/users/login'
